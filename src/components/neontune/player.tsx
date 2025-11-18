@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import { Pause, Play, SkipBack, SkipForward, Youtube } from "lucide-react";
 import ReactPlayer from 'react-player/youtube';
