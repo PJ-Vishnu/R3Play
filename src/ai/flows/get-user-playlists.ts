@@ -18,9 +18,9 @@ const GetUserPlaylistsInputSchema = z.object({
 export type GetUserPlaylistsInput = z.infer<typeof GetUserPlaylistsInputSchema>;
 
 const PlaylistSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   snippet: z.object({
-    title: z.string(),
+    title: z.string().optional(),
   }).optional(),
 }).optional();
 
@@ -54,7 +54,7 @@ const getUserPlaylistsFlow = ai.defineFlow(
     const oauth2Client = new OAuth2Client({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      redirectUri: 'postmessage',
+      redirectUri: 'postmessage', // This is the crucial fix
     });
 
     const { tokens } = await oauth2Client.getToken(code);
