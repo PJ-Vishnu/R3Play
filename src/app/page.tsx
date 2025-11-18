@@ -12,6 +12,7 @@ import {
   PanelLeft,
   Sparkles,
   User,
+  Equal,
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
@@ -194,7 +195,7 @@ export default function Home() {
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
             <header className="flex h-16 items-center justify-between border-b border-primary/20 px-4 shrink-0">
               <div className="flex items-center gap-4">
-                <SidebarTrigger className="md:hidden" />
+                <SidebarTrigger />
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />
                   <h1 className="text-xl font-headline font-bold text-primary text-glow">
@@ -209,7 +210,7 @@ export default function Home() {
               </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[120px]">
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[120px] md:pb-[90px]">
               <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
                 <CardHeader>
                   <div className="flex items-center gap-3">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -7,6 +8,7 @@ import {
   Plus,
   Radio,
   Sparkles,
+  Youtube,
 } from "lucide-react";
 import { PLAYLISTS } from "@/lib/data";
 import {
@@ -94,6 +96,17 @@ export default function NeonTuneSidebar({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+        </SidebarMenu>
+      </SidebarGroup>
+       <SidebarSeparator />
+      <SidebarGroup>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <Youtube className="text-red-500" />
+              <span>Login with YouTube Music</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </Sidebar>
