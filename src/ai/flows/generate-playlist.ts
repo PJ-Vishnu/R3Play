@@ -21,7 +21,7 @@ const GeneratePlaylistInputSchema = z.object({
 export type GeneratePlaylistInput = z.infer<typeof GeneratePlaylistInputSchema>;
 
 const GeneratePlaylistOutputSchema = z.object({
-  playlist: z.array(z.string()).describe('A list of song names for the playlist.'),
+  playlist: z.array(z.string().describe("A song name and artist, in the format 'Song Name by Artist Name'")).describe('A list of song names for the playlist.'),
 });
 export type GeneratePlaylistOutput = z.infer<typeof GeneratePlaylistOutputSchema>;
 
@@ -38,7 +38,7 @@ const prompt = ai.definePrompt({
   Listening History: {{{listeningHistory}}}
   Current Requests: {{{currentRequests}}}
 
-Please create a playlist of songs that the user will enjoy.  Respond with an array of song names.  Make sure the songs are appropriate for the listening history and current requests.`,
+Please create a playlist of songs that the user will enjoy.  Respond with an array of song names, with each song formatted as 'Song Name by Artist Name'.  Make sure the songs are appropriate for the listening history and current requests.`,
 });
 
 const generatePlaylistFlow = ai.defineFlow(

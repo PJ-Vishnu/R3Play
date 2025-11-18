@@ -37,6 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { LISTENING_HISTORY, SONGS } from "@/lib/data";
 import type { Song } from "@/lib/types";
+import { searchSongOnYouTube } from "@/lib/youtube";
 
 export default function Home() {
   const [playlist, setPlaylist] = React.useState<Song[]>([]);
@@ -134,19 +135,24 @@ export default function Home() {
       const newPlaylist: Song[] = await Promise.all(
         playlistNames.slice(0, 15).map(async (name) => {
           const existingSong = SONGS.find(s => s.title === name);
-          if (existingSong) return { ...existingSong, videoId: name };
+          
+          const [title, artist] = name.split(' by ');
+          const videoId = await searchSongOnYouTube(title, artist || '');
 
-          // Fallback for demo purposes
+          if (existingSong && videoId) {
+            return { ...existingSong, videoId };
+          }
+          
           const randomSong = SONGS[Math.floor(Math.random() * SONGS.length)];
           return {
             id: crypto.randomUUID(),
-            title: name,
-            artist: 'Unknown Artist',
+            title: title || name,
+            artist: artist || 'Unknown Artist',
             album: 'AI Playlist',
             duration: 180,
             albumArtUrl: randomSong.albumArtUrl,
             imageHint: randomSong.imageHint,
-            videoId: name,
+            videoId: videoId || randomSong.videoId,
           };
         })
       );
@@ -157,13 +163,21 @@ export default function Home() {
         title: "Playlist Generated!",
         description: `Your new playlist based on "${request}" is ready.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Playlist Generation Failed",
-        description: "Could not generate a new playlist.",
-      });
+       if (error.message && error.message.includes("503")) {
+        toast({
+          variant: "destructive",
+          title: "AI Model Overloaded",
+          description: "The AI is currently busy. Please try again in a moment.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Playlist Generation Failed",
+          description: "Could not generate a new playlist.",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
