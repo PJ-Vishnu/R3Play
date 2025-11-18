@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -14,12 +15,16 @@ declare global {
     }
 }
 
-const YouTubeLogin: React.FC = () => {
+interface YouTubeLoginProps {
+    onLoginSuccess: () => void;
+}
+
+const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
     const [tokenClient, setTokenClient] = useState<any>(null);
     const [isGapiLoaded, setIsGapiLoaded] = useState(false);
     const [isGsiLoaded, setIsGsiLoaded] = useState(false);
     const { toast } = useToast();
-    const { isLoggedIn, setIsLoggedIn, fetchPlaylists, clearPlaylists } = useYouTube();
+    const { isLoggedIn, setIsLoggedIn, clearPlaylists } = useYouTube();
 
     const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -27,6 +32,8 @@ const YouTubeLogin: React.FC = () => {
     const loadGapi = useCallback(() => {
         const script = document.createElement('script');
         script.src = 'https://apis.google.com/js/api.js';
+        script.async = true;
+        script.defer = true;
         script.onload = () => {
             window.gapi.load('client', () => {
                 if (!apiKey || apiKey === "YOUR_YOUTUBE_API_KEY") {
@@ -51,6 +58,8 @@ const YouTubeLogin: React.FC = () => {
     const loadGsi = useCallback(() => {
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
         script.onload = () => {
             if (window.google && window.google.accounts) {
                 if (!clientId || clientId === "YOUR_GOOGLE_CLIENT_ID") {
@@ -66,7 +75,7 @@ const YouTubeLogin: React.FC = () => {
                            if (tokenResponse && tokenResponse.access_token) {
                                window.gapi.client.setToken(tokenResponse);
                                setIsLoggedIn(true);
-                               fetchPlaylists();
+                               onLoginSuccess();
                                toast({ title: "Successfully logged into YouTube Music." });
                            } else {
                                 console.error("Access token not found in tokenResponse", tokenResponse);
@@ -87,11 +96,20 @@ const YouTubeLogin: React.FC = () => {
            }
         };
         document.body.appendChild(script);
-    }, [clientId, toast, setIsLoggedIn, fetchPlaylists]);
+    }, [clientId, toast, setIsLoggedIn, onLoginSuccess]);
 
     useEffect(() => {
-        loadGapi();
-        loadGsi();
+        // Check if scripts are already loaded
+        if (!window.gapi) {
+            loadGapi();
+        } else {
+            setIsGapiLoaded(true);
+        }
+        if (!window.google || !window.google.accounts) {
+            loadGsi();
+        } else {
+            setIsGsiLoaded(true);
+        }
     }, [loadGapi, loadGsi]);
 
     const handleLogin = () => {
@@ -139,3 +157,5 @@ const YouTubeLogin: React.FC = () => {
 };
 
 export default YouTubeLogin;
+
+    

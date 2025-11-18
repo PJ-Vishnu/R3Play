@@ -2,15 +2,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { getMyPlaylists } from '@/lib/youtube';
 
 interface YouTubeContextType {
     isLoggedIn: boolean;
     setIsLoggedIn: (isLoggedIn: boolean) => void;
     playlists: any[];
+    setPlaylists: (playlists: any[]) => void;
     likedMusicPlaylist: any | null;
+    setLikedMusicPlaylist: (playlist: any | null) => void;
     isLoadingPlaylists: boolean;
-    fetchPlaylists: () => Promise<void>;
+    setIsLoadingPlaylists: (isLoading: boolean) => void;
     clearPlaylists: () => void;
 }
 
@@ -22,26 +23,6 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [likedMusicPlaylist, setLikedMusicPlaylist] = useState<any | null>(null);
     const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
 
-    const fetchPlaylists = useCallback(async () => {
-        if (!isLoggedIn) return;
-        setIsLoadingPlaylists(true);
-        try {
-            const items = await getMyPlaylists();
-            // "Liked music" is a special playlist channel, often with id 'LM'
-            const liked = items.find(p => p.id === 'LM');
-            const otherPlaylists = items.filter(p => p.id !== 'LM');
-            
-            setLikedMusicPlaylist(liked || null);
-            setPlaylists(otherPlaylists);
-        } catch (error) {
-            console.error("Failed to fetch playlists", error);
-            setPlaylists([]);
-            setLikedMusicPlaylist(null);
-        } finally {
-            setIsLoadingPlaylists(false);
-        }
-    }, [isLoggedIn]);
-
     const clearPlaylists = useCallback(() => {
         setPlaylists([]);
         setLikedMusicPlaylist(null);
@@ -52,9 +33,11 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
             isLoggedIn,
             setIsLoggedIn,
             playlists,
+            setPlaylists,
             likedMusicPlaylist,
+            setLikedMusicPlaylist,
             isLoadingPlaylists,
-            fetchPlaylists,
+            setIsLoadingPlaylists,
             clearPlaylists
         }}>
             {children}
@@ -69,3 +52,5 @@ export const useYouTube = () => {
     }
     return context;
 };
+
+    

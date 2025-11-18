@@ -28,11 +28,15 @@ import { Skeleton } from "../ui/skeleton";
 type NeonTuneSidebarProps = {
   onAnalyze: () => void;
   onViewPlaylist: () => void;
+  onStartRadio: () => void;
+  onLoginSuccess: () => void;
 };
 
 export default function NeonTuneSidebar({
   onAnalyze,
   onViewPlaylist,
+  onStartRadio,
+  onLoginSuccess,
 }: NeonTuneSidebarProps) {
   const { isLoggedIn, playlists, isLoadingPlaylists, likedMusicPlaylist } = useYouTube();
   return (
@@ -50,7 +54,7 @@ export default function NeonTuneSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Radio">
+            <SidebarMenuButton tooltip="Radio" onClick={onStartRadio}>
               <Radio />
               <span>Radio</span>
             </SidebarMenuButton>
@@ -124,9 +128,11 @@ export default function NeonTuneSidebar({
        <SidebarSeparator />
       <SidebarGroup>
         <SidebarMenu>
-          <YouTubeLogin />
+          <YouTubeLogin onLoginSuccess={onLoginSuccess} />
         </SidebarMenu>
       </SidebarGroup>
     </Sidebar>
   );
 }
+
+    

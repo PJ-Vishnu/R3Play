@@ -32,9 +32,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { LISTENING_HISTORY, SONGS } from "@/lib/data";
+import { LISTENING_HISTORY } from "@/lib/data";
 import type { Song } from "@/lib/types";
-import { searchSongOnYouTube } from "@/lib/youtube";
+import { getMyPlaylists, searchSongOnYouTube, getYouTubeVideoDetails } from "@/lib/youtube";
+import { useYouTube } from "@/context/youtube-context";
+
 
 export default function Home() {
   const [playlist, setPlaylist] = React.useState<Song[]>([]);
@@ -52,6 +54,7 @@ export default function Home() {
   const [request, setRequest] = React.useState("");
 
   const { toast } = useToast();
+  const { setPlaylists, setLikedMusicPlaylist } = useYouTube();
 
   const currentSong =
     currentSongIndex !== null ? playlist[currentSongIndex] : null;
@@ -118,6 +121,39 @@ export default function Home() {
     }
   };
 
+    const processGeneratedPlaylist = async (playlistNames: string[], request: string) => {
+      const newPlaylist: Song[] = await Promise.all(
+        playlistNames.slice(0, 15).map(async (name) => {
+          const [title, artist] = name.split(' by ');
+          const videoId = await searchSongOnYouTube(title, artist || '');
+          let videoDetails = null;
+          if (videoId) {
+            videoDetails = await getYouTubeVideoDetails(videoId);
+          }
+
+          return {
+            id: crypto.randomUUID(),
+            title: title || name,
+            artist: artist || 'Unknown Artist',
+            album: 'AI Playlist',
+            duration: videoDetails?.duration || 180,
+            albumArtUrl: videoDetails?.thumbnailUrl || 'https://picsum.photos/seed/placeholder/400/400',
+            imageHint: 'album art',
+            videoId: videoId || '',
+          };
+        })
+      );
+      
+      setPlaylist(newPlaylist.filter(song => song.videoId));
+      setRequest("");
+      toast({
+        title: "Playlist Generated!",
+        description: `Your new playlist based on "${request}" is ready.`,
+      });
+
+      return newPlaylist.filter(song => song.videoId).length > 0;
+  }
+
   const handleGeneratePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!request) return;
@@ -139,37 +175,8 @@ export default function Home() {
         request
       );
 
-      const newPlaylist: Song[] = await Promise.all(
-        playlistNames.slice(0, 15).map(async (name) => {
-          const existingSong = SONGS.find(s => s.title === name);
-          
-          const [title, artist] = name.split(' by ');
-          const videoId = await searchSongOnYouTube(title, artist || '');
+      await processGeneratedPlaylist(playlistNames, request);
 
-          if (existingSong && videoId) {
-            return { ...existingSong, videoId };
-          }
-          
-          const randomSong = SONGS[Math.floor(Math.random() * SONGS.length)];
-          return {
-            id: crypto.randomUUID(),
-            title: title || name,
-            artist: artist || 'Unknown Artist',
-            album: 'AI Playlist',
-            duration: 180,
-            albumArtUrl: randomSong.albumArtUrl,
-            imageHint: randomSong.imageHint,
-            videoId: videoId || randomSong.videoId,
-          };
-        })
-      );
-      
-      setPlaylist(newPlaylist);
-      setRequest("");
-      toast({
-        title: "Playlist Generated!",
-        description: `Your new playlist based on "${request}" is ready.`,
-      });
     } catch (error: any) {
       console.error(error);
       const errorMessage = error?.result?.error?.message || error?.message || "Could not generate a new playlist.";
@@ -191,6 +198,45 @@ export default function Home() {
     }
   };
 
+  const handleStartRadio = async () => {
+    const radioRequest = 'a radio mix based on my taste';
+    setIsLoading(true);
+    setActiveView("playlist");
+    try {
+      const { playlist: playlistNames } = await generatePlaylistAction(
+        LISTENING_HISTORY,
+        radioRequest
+      );
+      
+      const wasPlaylistCreated = await processGeneratedPlaylist(playlistNames, radioRequest);
+
+      if (wasPlaylistCreated) {
+        setCurrentSongIndex(0);
+        setIsPlaying(true);
+        setProgress(0);
+      }
+
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage = error?.result?.error?.message || error?.message || "Could not generate radio playlist.";
+       if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
+        toast({
+          variant: "destructive",
+          title: "AI Model Overloaded",
+          description: "The AI is currently busy. Please try again in a moment.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Radio Failed",
+          description: errorMessage,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const viewPlaylist = () => {
     setActiveView("playlist");
   };
@@ -199,12 +245,22 @@ export default function Home() {
     setProgress(state.played * 100);
   }
 
+   const handleLoginSuccess = async () => {
+      const items = await getMyPlaylists();
+      const liked = items.find((p: any) => p.id === 'LM');
+      const otherPlaylists = items.filter((p: any) => p.id !== 'LM');
+      setLikedMusicPlaylist(liked || null);
+      setPlaylists(otherPlaylists);
+  };
+
   return (
     <SidebarProvider>
       <div className="bg-background min-h-svh">
         <NeonTuneSidebar
           onAnalyze={handleAnalyzeHistory}
           onViewPlaylist={viewPlaylist}
+          onStartRadio={handleStartRadio}
+          onLoginSuccess={handleLoginSuccess}
         />
         <SidebarInset>
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
@@ -293,3 +349,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    

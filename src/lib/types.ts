@@ -7,5 +7,12 @@ export type Song = {
   duration: number; // in seconds
   albumArtUrl: string;
   imageHint?: string;
-  videoId?: string;
+  videoId: string;
 };
+
+export type YouTubeVideoDetails = {
+    duration: number; // in seconds
+    thumbnailUrl: string;
+}
+
+    
