@@ -32,17 +32,16 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
             console.error("YouTube API Key is missing.");
             return;
         }
-        window.gapi.load('client', () => {
-            window.gapi.client.init({
+        window.gapi.load('client', async () => {
+            await window.gapi.client.init({
                 apiKey: apiKey,
                 discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-            }).then(() => {
-                // Now GAPI is ready
-            }).catch((error: any) => {
-                console.error("Error initializing gapi client:", error);
             });
+            if (tokenClient) {
+                setIsReady(true);
+            }
         });
-    }, [apiKey]);
+    }, [apiKey, tokenClient]);
     
     const gsiLoaded = useCallback(() => {
         if (!clientId || clientId === "YOUR_GOOGLE_CLIENT_ID") {
@@ -72,6 +71,9 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
                 }
             });
             setTokenClient(client);
+            if (window.gapi?.client?.youtube) {
+                setIsReady(true);
+            }
         } catch (e) {
             console.error("Error initializing token client", e);
         }
@@ -97,12 +99,6 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
             document.body.removeChild(gsiScript);
         };
     }, [gapiLoaded, gsiLoaded]);
-
-    useEffect(() => {
-        if (tokenClient && window.gapi?.client?.youtube) {
-            setIsReady(true);
-        }
-    }, [tokenClient]);
 
     const handleLogin = () => {
         if (!apiKey || apiKey === "YOUR_YOUTUBE_API_KEY" || !clientId || clientId === "YOUR_GOOGLE_CLIENT_ID") {
