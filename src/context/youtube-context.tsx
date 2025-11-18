@@ -3,6 +3,11 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
+interface ListeningHistoryItem {
+  title: string;
+  artist: string;
+}
+
 interface YouTubeContextType {
     isLoggedIn: boolean;
     setIsLoggedIn: (isLoggedIn: boolean) => void;
@@ -12,6 +17,8 @@ interface YouTubeContextType {
     setLikedMusicPlaylist: (playlist: any | null) => void;
     isLoadingPlaylists: boolean;
     setIsLoadingPlaylists: (isLoading: boolean) => void;
+    listeningHistory: ListeningHistoryItem[];
+    setListeningHistory: (history: ListeningHistoryItem[]) => void;
     clearPlaylists: () => void;
 }
 
@@ -22,10 +29,12 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [likedMusicPlaylist, setLikedMusicPlaylist] = useState<any | null>(null);
     const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
+    const [listeningHistory, setListeningHistory] = useState<ListeningHistoryItem[]>([]);
 
     const clearPlaylists = useCallback(() => {
         setPlaylists([]);
         setLikedMusicPlaylist(null);
+        setListeningHistory([]);
     }, []);
 
     return (
@@ -38,6 +47,8 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setLikedMusicPlaylist,
             isLoadingPlaylists,
             setIsLoadingPlaylists,
+            listeningHistory,
+            setListeningHistory,
             clearPlaylists
         }}>
             {children}
@@ -52,5 +63,3 @@ export const useYouTube = () => {
     }
     return context;
 };
-
-    

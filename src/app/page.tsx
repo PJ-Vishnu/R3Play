@@ -32,9 +32,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { LISTENING_HISTORY } from "@/lib/data";
 import type { Song } from "@/lib/types";
-import { getMyPlaylists, searchSongOnYouTube, getYouTubeVideoDetails } from "@/lib/youtube";
+import { getMyPlaylists, searchSongOnYouTube, getYouTubeVideoDetails, getPlaylistItems } from "@/lib/youtube";
 import { useYouTube } from "@/context/youtube-context";
 
 
@@ -54,7 +53,15 @@ export default function Home() {
   const [request, setRequest] = React.useState("");
 
   const { toast } = useToast();
-  const { setPlaylists, setLikedMusicPlaylist } = useYouTube();
+  const { 
+    setPlaylists, 
+    setLikedMusicPlaylist, 
+    isLoggedIn,
+    likedMusicPlaylist,
+    listeningHistory,
+    setListeningHistory,
+    setIsLoadingPlaylists,
+  } = useYouTube();
 
   const currentSong =
     currentSongIndex !== null ? playlist[currentSongIndex] : null;
@@ -103,11 +110,26 @@ export default function Home() {
     }
   };
 
+  const getHistory = () => {
+    if (!isLoggedIn || listeningHistory.length === 0) {
+       toast({
+        variant: "destructive",
+        title: "No Listening History",
+        description: "Login to YouTube and 'like' some songs to build a history, or use the Analyze Taste feature first.",
+      });
+      return null;
+    }
+    return JSON.stringify(listeningHistory);
+  }
+
   const handleAnalyzeHistory = async () => {
+    const history = getHistory();
+    if (!history) return;
+    
     setIsLoading(true);
     setActiveView("analysis");
     try {
-      const result = await analyzeHistoryAction(LISTENING_HISTORY);
+      const result = await analyzeHistoryAction(history);
       setAnalysisResult(result);
     } catch (error) {
       console.error(error);
@@ -137,21 +159,31 @@ export default function Home() {
             artist: artist || 'Unknown Artist',
             album: 'AI Playlist',
             duration: videoDetails?.duration || 180,
-            albumArtUrl: videoDetails?.thumbnailUrl || 'https://picsum.photos/seed/placeholder/400/400',
+            albumArtUrl: videoDetails?.thumbnailUrl || `https://picsum.photos/seed/${Math.random()}/400/400`,
             imageHint: 'album art',
             videoId: videoId || '',
           };
         })
       );
       
-      setPlaylist(newPlaylist.filter(song => song.videoId));
-      setRequest("");
-      toast({
-        title: "Playlist Generated!",
-        description: `Your new playlist based on "${request}" is ready.`,
-      });
+      const successfulSongs = newPlaylist.filter(song => song.videoId);
 
-      return newPlaylist.filter(song => song.videoId).length > 0;
+      if (successfulSongs.length > 0) {
+        setPlaylist(successfulSongs);
+        setRequest("");
+        toast({
+          title: "Playlist Generated!",
+          description: `Your new playlist based on "${request}" is ready.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Playlist Generation Failed",
+          description: "Could not find any songs for your request.",
+        });
+      }
+      
+      return successfulSongs.length > 0;
   }
 
   const handleGeneratePlaylist = async (e: React.FormEvent) => {
@@ -167,11 +199,14 @@ export default function Home() {
       return;
     }
 
+    const history = getHistory();
+    if (!history) return;
+
     setIsLoading(true);
     setActiveView("playlist");
     try {
       const { playlist: playlistNames } = await generatePlaylistAction(
-        LISTENING_HISTORY,
+        history,
         request
       );
 
@@ -199,12 +234,23 @@ export default function Home() {
   };
 
   const handleStartRadio = async () => {
+    if (!process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') {
+      toast({
+        variant: 'destructive',
+        title: "Configuration Missing",
+        description: "Please add your YouTube API Key and Google Client ID to the .env.local file.",
+      });
+      return;
+    }
+    const history = getHistory();
+    if (!history) return;
+
     const radioRequest = 'a radio mix based on my taste';
     setIsLoading(true);
     setActiveView("playlist");
     try {
       const { playlist: playlistNames } = await generatePlaylistAction(
-        LISTENING_HISTORY,
+        history,
         radioRequest
       );
       
@@ -246,11 +292,36 @@ export default function Home() {
   }
 
    const handleLoginSuccess = async () => {
-      const items = await getMyPlaylists();
-      const liked = items.find((p: any) => p.id === 'LM');
-      const otherPlaylists = items.filter((p: any) => p.id !== 'LM');
-      setLikedMusicPlaylist(liked || null);
-      setPlaylists(otherPlaylists);
+      setIsLoadingPlaylists(true);
+      try {
+        const items = await getMyPlaylists();
+        const liked = items.find((p: any) => p.id === 'LM');
+        const otherPlaylists = items.filter((p: any) => p.id !== 'LM');
+        setLikedMusicPlaylist(liked || null);
+        setPlaylists(otherPlaylists);
+
+        if (liked) {
+          const likedItems = await getPlaylistItems(liked.id);
+          const history = likedItems.map(item => ({
+            title: item.snippet.title,
+            artist: item.snippet.videoOwnerChannelTitle.replace(' - Topic', ''),
+          }));
+          setListeningHistory(history);
+          toast({
+            title: "Taste Profile Updated!",
+            description: "Your 'Liked Music' playlist has been analyzed."
+          })
+        }
+      } catch (e) {
+        console.error(e);
+        toast({
+          variant: "destructive",
+          title: "Error fetching playlists",
+          description: "Could not fetch your YouTube playlists."
+        })
+      } finally {
+        setIsLoadingPlaylists(false);
+      }
   };
 
   return (
@@ -265,7 +336,7 @@ export default function Home() {
         <SidebarInset>
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
             <header className="flex h-16 items-center justify-center border-b border-primary/20 px-4 shrink-0">
-              <div className="flex items-center gap-4 w-full max-w-screen-xl">
+              <div className="flex items-center gap-4 w-full">
                 <SidebarTrigger className="md:hidden" />
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />

@@ -50,6 +50,37 @@ export async function getMyPlaylists(): Promise<any[]> {
     }
 }
 
+export async function getPlaylistItems(playlistId: string): Promise<any[]> {
+    if (!window.gapi || !window.gapi.client || !window.gapi.client.youtube) {
+        console.error("YouTube API client is not initialized.");
+        return [];
+    }
+
+    let allItems: any[] = [];
+    let nextPageToken: string | undefined = undefined;
+
+    try {
+        do {
+            const response = await window.gapi.client.youtube.playlistItems.list({
+                part: 'snippet,contentDetails',
+                playlistId: playlistId,
+                maxResults: 50,
+                pageToken: nextPageToken,
+            });
+
+            allItems = allItems.concat(response.result.items || []);
+            nextPageToken = response.result.nextPageToken;
+        } while (nextPageToken);
+
+        return allItems;
+    } catch (error: any) {
+        const errorMessage = error?.result?.error?.message || error?.message || JSON.stringify(error);
+        console.error("Error fetching playlist items:", errorMessage);
+        return [];
+    }
+}
+
+
 function convertISO8601ToSeconds(isoDuration: string): number {
     try {
         const duration = parseISO8601Duration(isoDuration);
@@ -96,5 +127,3 @@ export async function getYouTubeVideoDetails(videoId: string): Promise<YouTubeVi
         return null;
     }
 }
-
-    
