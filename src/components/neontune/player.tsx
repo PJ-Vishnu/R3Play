@@ -34,10 +34,10 @@ export default function Player({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-[90px] bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 flex items-center px-4 md:px-6">
-      <div className="flex items-center gap-4 w-full">
+    <div className="fixed bottom-0 left-0 right-0 h-auto md:h-[90px] bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 flex items-center px-4 md:px-6 py-2 md:py-0">
+      <div className="flex flex-col md:flex-row items-center gap-4 w-full">
         {/* Song Info */}
-        <div className="flex items-center gap-3 w-full max-w-[200px] sm:max-w-[250px]">
+        <div className="flex items-center gap-3 w-full md:w-1/4 md:max-w-[250px]">
           <Image
             src={song.albumArtUrl}
             alt={song.album}
@@ -55,7 +55,7 @@ export default function Player({
         </div>
 
         {/* Player Controls */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-2">
+        <div className="w-full md:flex-1 flex flex-col items-center justify-center gap-2">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onPrev} className="text-muted-foreground hover:text-foreground">
               <SkipBack className="w-6 h-6" />
@@ -90,7 +90,7 @@ export default function Player({
             </span>
           </div>
         </div>
-        <div className="w-full max-w-[200px] sm:max-w-[250px] hidden sm:block"></div>
+        <div className="w-1/4 max-w-[250px] hidden md:block"></div>
       </div>
     </div>
   );

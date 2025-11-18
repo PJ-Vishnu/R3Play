@@ -225,7 +225,7 @@ export default function Home() {
                 <CardContent>
                   <form
                     onSubmit={handleGeneratePlaylist}
-                    className="flex gap-2"
+                    className="flex flex-col sm:flex-row gap-2"
                   >
                     <Input
                       placeholder="e.g., '90s rock classics' or 'upbeat electronic'"
@@ -240,7 +240,7 @@ export default function Home() {
                       ) : (
                         <Mic />
                       )}
-                      <span className="hidden sm:inline">Request</span>
+                      <span className="sm:inline">Request</span>
                     </Button>
                   </form>
                 </CardContent>
