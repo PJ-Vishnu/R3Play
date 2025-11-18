@@ -65,6 +65,7 @@ const getUserPlaylistsFlow = ai.defineFlow(
       auth: oauth2Client,
     });
 
+    oauth2Client.setCredentials(tokens);
     const playlistsResponse = await youtube.playlists.list({
       part: ['snippet', 'contentDetails'],
       mine: true,
@@ -84,9 +85,10 @@ const getUserPlaylistsFlow = ai.defineFlow(
 
     if (likedMusicPlaylist) {
       let allItems: any[] = [];
-      let nextPageToken: string | undefined | null = undefined;
+      let nextPageToken: string | null = null;
 
       do {
+        oauth2Client.setCredentials(tokens);
         const ratedVideosResponse = await youtube.videos.list({
           part: ['snippet', 'contentDetails'],
           myRating: 'like',
@@ -95,7 +97,7 @@ const getUserPlaylistsFlow = ai.defineFlow(
         });
 
         allItems = allItems.concat(ratedVideosResponse.data.items || []);
-        nextPageToken = ratedVideosResponse.data.nextPageToken;
+        nextPageToken = ratedVideosResponse.data.nextPageToken || null;
       } while (nextPageToken);
 
       listeningHistory = allItems.map((item) => ({
