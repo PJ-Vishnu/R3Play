@@ -54,7 +54,7 @@ const getUserPlaylistsFlow = ai.defineFlow(
     const oauth2Client = new OAuth2Client({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      redirectUri: 'postmessage', // This is the crucial fix
+      redirectUri: 'postmessage',
     });
 
     const { tokens } = await oauth2Client.getToken(code);
