@@ -208,8 +208,8 @@ export default function Home() {
         />
         <SidebarInset>
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
-            <header className="flex h-16 items-center justify-between border-b border-primary/20 px-4 shrink-0">
-              <div className="flex items-center gap-4">
+            <header className="flex h-16 items-center justify-center border-b border-primary/20 px-4 shrink-0">
+              <div className="flex items-center gap-4 w-full max-w-screen-xl">
                 <SidebarTrigger className="md:hidden" />
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />
@@ -217,16 +217,17 @@ export default function Home() {
                     NeonTune
                   </h1>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
-                  <User className="w-5 h-5" />
-                </Button>
+                <div className="flex-1" />
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                    <User className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
             </header>
             
-            <div className="flex-1 overflow-y-auto">
-              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px]">
+            <main className="flex-1 overflow-y-auto">
+              <div className="w-full max-w-screen-xl mx-auto p-4 md:p-6 pb-[160px] md:pb-[90px]">
                 <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
                   <CardHeader>
                     <div className="flex items-center gap-3">
@@ -271,8 +272,8 @@ export default function Home() {
                   onPlaySong={handlePlaySong}
                   activeSongId={currentSong?.id}
                 />
-              </main>
-            </div>
+              </div>
+            </main>
 
 
             {currentSong && (
