@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
-import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
+import { analyzeHistoryAction, generatePlaylistAction, getUserPlaylistsAction } from "@/app/actions";
 import MainView from "@/components/neontune/main-view";
 import Player from "@/components/neontune/player";
 import NeonTuneSidebar from "@/components/neontune/sidebar";
@@ -298,26 +298,20 @@ export default function Home() {
     setProgress(state.played * 100);
   }
 
-   const handleLoginSuccess = async () => {
+   const handleLoginSuccess = async (code: string) => {
       setIsLoadingPlaylists(true);
       try {
-        const items = await getMyPlaylists();
-        const liked = items.find((p: any) => p.id === 'LM');
-        const otherPlaylists = items.filter((p: any) => p.id !== 'LM');
-        setLikedMusicPlaylist(liked || null);
-        setPlaylists(otherPlaylists);
+        const { likedMusicPlaylist, otherPlaylists, listeningHistory } = await getUserPlaylistsAction(code);
+        
+        setLikedMusicPlaylist(likedMusicPlaylist || null);
+        setPlaylists(otherPlaylists || []);
 
-        if (liked) {
-          const likedItems = await getPlaylistItems(liked.id);
-          const history = likedItems.map(item => ({
-            title: item.snippet.title,
-            artist: item.snippet.videoOwnerChannelTitle.replace(' - Topic', ''),
-          }));
-          setListeningHistory(history);
-          if (history.length > 0) {
+        if (listeningHistory) {
+          setListeningHistory(listeningHistory);
+          if (listeningHistory.length > 0) {
             toast({
               title: "Taste Profile Updated!",
-              description: `Analyzed ${history.length} songs from your 'Liked Music' playlist.`
+              description: `Analyzed ${listeningHistory.length} songs from your 'Liked Music' playlist.`
             });
           } else {
              toast({
@@ -332,12 +326,12 @@ export default function Home() {
             description: "Could not find your 'Liked Music' playlist. Please ensure you have one on YouTube Music."
           });
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         toast({
           variant: "destructive",
           title: "Error fetching playlists",
-          description: "Could not fetch your YouTube playlists."
+          description: e.message || "Could not fetch your YouTube playlists."
         })
       } finally {
         setIsLoadingPlaylists(false);
@@ -440,4 +434,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
- 

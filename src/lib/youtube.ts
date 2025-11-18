@@ -9,6 +9,8 @@ export async function searchSongOnYouTube(songTitle: string, artist: string): Pr
     }
 
     try {
+        // Set an empty token to use API Key for this public search
+        window.gapi.client.setToken(null);
         const response = await window.gapi.client.youtube.search.list({
             part: 'snippet',
             q: `${songTitle} ${artist}`,
@@ -102,6 +104,8 @@ export async function getYouTubeVideoDetails(videoId: string): Promise<YouTubeVi
     }
 
     try {
+        // Set an empty token to use API Key for this public search
+        window.gapi.client.setToken(null);
         const response = await window.gapi.client.youtube.videos.list({
             part: 'snippet,contentDetails',
             id: videoId,
