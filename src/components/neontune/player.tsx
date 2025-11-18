@@ -2,7 +2,8 @@
 "use client";
 
 import Image from "next/image";
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { Pause, Play, SkipBack, SkipForward, Youtube } from "lucide-react";
+import ReactPlayer from 'react-player/youtube';
 import type { Song } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -14,7 +15,8 @@ type PlayerProps = {
   onPlayPause: () => void;
   onNext: () => void;
   onPrev: () => void;
-  onProgressChange: (value: number) => void;
+  onProgressChange: (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => void;
+  onEnded: () => void;
 };
 
 export default function Player({
@@ -25,6 +27,7 @@ export default function Player({
   onNext,
   onPrev,
   onProgressChange,
+  onEnded,
 }: PlayerProps) {
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(seconds);
@@ -33,8 +36,35 @@ export default function Player({
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  const playerRef = React.useRef<ReactPlayer>(null);
+
+  const handleSliderChange = (value: number[]) => {
+    const newProgress = value[0];
+    if (playerRef.current) {
+        playerRef.current.seekTo(newProgress / 100);
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 h-auto md:h-[90px] bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 flex items-center px-4 md:px-6 py-2 md:py-0">
+       <div style={{ display: 'none' }}>
+        <ReactPlayer
+            ref={playerRef}
+            url={`https://www.youtube.com/watch?v=${song.videoId}`}
+            playing={isPlaying}
+            onProgress={onProgressChange}
+            onEnded={onEnded}
+            width="0"
+            height="0"
+            config={{
+                youtube: {
+                    playerVars: {
+                        autoplay: 1,
+                    }
+                }
+            }}
+        />
+       </div>
       <div className="flex flex-col md:flex-row items-center gap-4 w-full">
         {/* Song Info */}
         <div className="flex items-center gap-3 w-full md:w-1/4 md:max-w-[250px]">
@@ -81,7 +111,7 @@ export default function Player({
             </span>
             <Slider
               value={[progress]}
-              onValueChange={(value) => onProgressChange(value[0])}
+              onValueChange={handleSliderChange}
               max={100}
               step={1}
             />
@@ -90,7 +120,11 @@ export default function Player({
             </span>
           </div>
         </div>
-        <div className="w-1/4 max-w-[250px] hidden md:block"></div>
+        <div className="w-1/4 max-w-[250px] hidden md:flex items-center justify-end">
+            <a href={`https://music.youtube.com/watch?v=${song.videoId}`} target="_blank" rel="noopener noreferrer">
+                <Youtube className="w-8 h-8 text-red-500 hover:text-red-400" />
+            </a>
+        </div>
       </div>
     </div>
   );

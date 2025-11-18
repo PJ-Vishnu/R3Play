@@ -7,4 +7,5 @@ export type Song = {
   duration: number; // in seconds
   albumArtUrl: string;
   imageHint?: string;
+  videoId?: string;
 };

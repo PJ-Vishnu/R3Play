@@ -39,7 +39,7 @@ import { LISTENING_HISTORY, SONGS } from "@/lib/data";
 import type { Song } from "@/lib/types";
 
 export default function Home() {
-  const [playlist, setPlaylist] = React.useState<Song[]>(SONGS.slice(0, 10));
+  const [playlist, setPlaylist] = React.useState<Song[]>([]);
   const [currentSongIndex, setCurrentSongIndex] = React.useState<number | null>(
     null
   );
@@ -57,22 +57,6 @@ export default function Home() {
 
   const currentSong =
     currentSongIndex !== null ? playlist[currentSongIndex] : null;
-
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && currentSong) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            handleNext();
-            return 0;
-          }
-          return prev + 100 / currentSong.duration;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, currentSong]);
 
   const handlePlayPause = () => {
     if (currentSongIndex === null && playlist.length > 0) {
@@ -147,21 +131,26 @@ export default function Home() {
         request
       );
 
-      // This is a simulation. In a real app, you'd search for these songs.
-      const newPlaylist = playlistNames
-        .map((name) => SONGS.find((s) => s.title === name))
-        .filter((s): s is Song => !!s)
-        .slice(0, 15);
-      
-      const otherSongs = SONGS.filter(song => !playlistNames.includes(song.title));
-      let remainingSlots = 15 - newPlaylist.length;
-      while(remainingSlots > 0 && otherSongs.length > 0) {
-        const randomIndex = Math.floor(Math.random() * otherSongs.length);
-        newPlaylist.push(otherSongs[randomIndex]);
-        otherSongs.splice(randomIndex, 1);
-        remainingSlots--;
-      }
+      const newPlaylist: Song[] = await Promise.all(
+        playlistNames.slice(0, 15).map(async (name) => {
+          const existingSong = SONGS.find(s => s.title === name);
+          if (existingSong) return { ...existingSong, videoId: name };
 
+          // Fallback for demo purposes
+          const randomSong = SONGS[Math.floor(Math.random() * SONGS.length)];
+          return {
+            id: crypto.randomUUID(),
+            title: name,
+            artist: 'Unknown Artist',
+            album: 'AI Playlist',
+            duration: 180,
+            albumArtUrl: randomSong.albumArtUrl,
+            imageHint: randomSong.imageHint,
+            videoId: name,
+          };
+        })
+      );
+      
       setPlaylist(newPlaylist);
       setRequest("");
       toast({
@@ -184,6 +173,10 @@ export default function Home() {
     setActiveView("playlist");
   };
 
+  const handlePlayerProgress = (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => {
+    setProgress(state.played * 100);
+  }
+
   return (
     <SidebarProvider>
       <div className="bg-background min-h-svh">
@@ -195,7 +188,7 @@ export default function Home() {
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
             <header className="flex h-16 items-center justify-between border-b border-primary/20 px-4 shrink-0">
               <div className="flex items-center gap-4">
-                <SidebarTrigger />
+                <SidebarTrigger className="md:hidden" />
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />
                   <h1 className="text-xl font-headline font-bold text-primary text-glow">
@@ -235,7 +228,7 @@ export default function Home() {
                       className="text-base"
                       disabled={isLoading}
                     />
-                    <Button type="submit" disabled={isLoading} size="lg" className="font-bold">
+                    <Button type="submit" disabled={isLoading} size="lg" className="font-bold gap-2">
                       {isLoading ? (
                         <Loader className="animate-spin" />
                       ) : (
@@ -265,7 +258,8 @@ export default function Home() {
                 onPlayPause={handlePlayPause}
                 onNext={handleNext}
                 onPrev={handlePrev}
-                onProgressChange={setProgress}
+                onProgressChange={handlePlayerProgress}
+                onEnded={handleNext}
               />
             )}
           </div>

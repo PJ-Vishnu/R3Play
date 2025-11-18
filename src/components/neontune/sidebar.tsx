@@ -8,7 +8,6 @@ import {
   Plus,
   Radio,
   Sparkles,
-  Youtube,
 } from "lucide-react";
 import { PLAYLISTS } from "@/lib/data";
 import {
@@ -21,6 +20,8 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "../ui/button";
+import YouTubeLogin from "./youtube-login";
+
 
 type NeonTuneSidebarProps = {
   onAnalyze: () => void;
@@ -101,12 +102,7 @@ export default function NeonTuneSidebar({
        <SidebarSeparator />
       <SidebarGroup>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Youtube className="text-red-500" />
-              <span>Login with YouTube Music</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <YouTubeLogin />
         </SidebarMenu>
       </SidebarGroup>
     </Sidebar>
