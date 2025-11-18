@@ -29,7 +29,7 @@ type NeonTuneSidebarProps = {
   onAnalyze: () => void;
   onViewPlaylist: () => void;
   onStartRadio: () => void;
-  onLoginSuccess: (code: string) => void;
+  onLoginSuccess: () => void;
 };
 
 export default function NeonTuneSidebar({

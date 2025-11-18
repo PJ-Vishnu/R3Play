@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
-import { analyzeHistoryAction, generatePlaylistAction, getUserPlaylistsAction } from "@/app/actions";
+import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
 import MainView from "@/components/neontune/main-view";
 import Player from "@/components/neontune/player";
 import NeonTuneSidebar from "@/components/neontune/sidebar";
@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import type { Song } from "@/lib/types";
-import { getMyPlaylists, searchSongOnYouTube, getYouTubeVideoDetails, getPlaylistItems } from "@/lib/youtube";
+import { searchSongOnYouTube, getYouTubeVideoDetails } from "@/lib/youtube";
 import { useYouTube } from "@/context/youtube-context";
 
 
@@ -54,9 +54,9 @@ export default function Home() {
 
   const { toast } = useToast();
   const { 
+    isLoggedIn,
     setPlaylists, 
     setLikedMusicPlaylist, 
-    isLoggedIn,
     listeningHistory,
     setListeningHistory,
     setIsLoadingPlaylists,
@@ -298,20 +298,48 @@ export default function Home() {
     setProgress(state.played * 100);
   }
 
-   const handleLoginSuccess = async (code: string) => {
+   const handleLoginSuccess = async () => {
       setIsLoadingPlaylists(true);
       try {
-        const { likedMusicPlaylist, otherPlaylists, listeningHistory } = await getUserPlaylistsAction(code);
-        
-        setLikedMusicPlaylist(likedMusicPlaylist || null);
-        setPlaylists(otherPlaylists || []);
+        const playlistsResponse = await window.gapi.client.youtube.playlists.list({
+          part: ['snippet', 'contentDetails'],
+          mine: true,
+          maxResults: 50,
+        });
 
-        if (listeningHistory) {
-          setListeningHistory(listeningHistory);
-          if (listeningHistory.length > 0) {
+        const playlists = playlistsResponse.result.items || [];
+        const likedMusic = playlists.find((p: any) => p.id === 'LM') || null;
+        const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM');
+
+        setLikedMusicPlaylist(likedMusic);
+        setPlaylists(otherPlaylists);
+
+        if (likedMusic) {
+          let allItems: any[] = [];
+          let nextPageToken: string | null | undefined = undefined;
+
+          do {
+            const likedVideosResponse = await window.gapi.client.youtube.videos.list({
+              part: ['snippet', 'contentDetails'],
+              myRating: 'like',
+              maxResults: 50,
+              pageToken: nextPageToken,
+            });
+
+            allItems = allItems.concat(likedVideosResponse.result.items || []);
+            nextPageToken = likedVideosResponse.result.nextPageToken;
+          } while (nextPageToken);
+          
+          const history = allItems.map((item: any) => ({
+            title: item.snippet?.title || 'Unknown Title',
+            artist: (item.snippet?.channelTitle || 'Unknown Artist').replace(/ - Topic$/, ''),
+          }));
+
+          setListeningHistory(history);
+          if (history.length > 0) {
             toast({
               title: "Taste Profile Updated!",
-              description: `Analyzed ${listeningHistory.length} songs from your 'Liked Music' playlist.`
+              description: `Analyzed ${history.length} songs from your 'Liked Music' playlist.`
             });
           } else {
              toast({
@@ -323,7 +351,7 @@ export default function Home() {
           toast({
             variant: "destructive",
             title: "Taste Profile Unavailable",
-            description: "Could not find your 'Liked Music' playlist. Please ensure you have one on YouTube Music."
+            description: "Could not find your 'Liked Music' playlist (ID: LM). Please ensure you have one on YouTube Music."
           });
         }
       } catch (e: any) {
@@ -331,7 +359,7 @@ export default function Home() {
         toast({
           variant: "destructive",
           title: "Error fetching playlists",
-          description: e.message || "Could not fetch your YouTube playlists."
+          description: e.result?.error?.message || e.message || "Could not fetch your YouTube data."
         })
       } finally {
         setIsLoadingPlaylists(false);
