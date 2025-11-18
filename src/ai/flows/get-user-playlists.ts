@@ -72,32 +72,35 @@ const getUserPlaylistsFlow = ai.defineFlow(
     });
 
     const playlists = playlistsResponse.data.items || [];
-    const likedMusicPlaylist = playlists.find((p: any) => p.id === 'LM') || null;
-    const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM');
+    const likedMusicPlaylist = playlists.find((p: any) => p.snippet?.title === 'Liked music') || 
+                               playlists.find((p: any) => p.id === 'LM') || 
+                               null;
+    const otherPlaylists = playlists.filter((p: any) => p.id !== likedMusicPlaylist?.id);
 
     let listeningHistory = null;
-
+    
+    // The 'LM' playlist for "Liked Music" can't be queried directly via playlistItems.
+    // Instead, we need to fetch rated videos.
     if (likedMusicPlaylist) {
       let allItems: any[] = [];
       let nextPageToken: string | undefined | null = undefined;
-
+      
       do {
-        const playlistItemsResponse = await youtube.playlistItems.list({
+        const ratedVideosResponse = await youtube.videos.list({
           part: ['snippet', 'contentDetails'],
-          playlistId: likedMusicPlaylist.id!,
+          myRating: 'like',
           maxResults: 50,
           pageToken: nextPageToken || undefined,
         });
-        
-        allItems = allItems.concat(playlistItemsResponse.data.items || []);
-        nextPageToken = playlistItemsResponse.data.nextPageToken;
 
+        allItems = allItems.concat(ratedVideosResponse.data.items || []);
+        nextPageToken = ratedVideosResponse.data.nextPageToken;
       } while (nextPageToken);
 
       listeningHistory = allItems.map((item) => ({
         title: item.snippet?.title || 'Unknown Title',
-        artist: (item.snippet?.videoOwnerChannelTitle || 'Unknown Artist').replace(
-          ' - Topic',
+        artist: (item.snippet?.channelTitle || 'Unknown Artist').replace(
+          / - Topic$/,
           ''
         ),
       }));
