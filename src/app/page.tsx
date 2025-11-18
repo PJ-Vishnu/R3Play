@@ -226,7 +226,7 @@ export default function Home() {
             </header>
             
             <div className="flex-1 overflow-y-auto">
-              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px] max-w-screen-2xl mx-auto">
+              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px]">
                 <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
                   <CardHeader>
                     <div className="flex items-center gap-3">
