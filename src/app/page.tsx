@@ -308,29 +308,23 @@ export default function Home() {
         });
 
         const playlists = playlistsResponse.result.items || [];
-        const likedMusic = playlists.find((p: any) => p.id === 'LM') || null;
-        const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM');
+        const likedMusic = playlists.find((p: any) => p.snippet?.title === 'Liked music' || p.id === 'LM') || null;
+        const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM' && p.snippet?.title !== 'Liked music');
 
         setLikedMusicPlaylist(likedMusic);
         setPlaylists(otherPlaylists);
 
         if (likedMusic) {
-          let allItems: any[] = [];
-          let nextPageToken: string | null | undefined = undefined;
-
-          do {
-            const likedVideosResponse = await window.gapi.client.youtube.videos.list({
-              part: ['snippet', 'contentDetails'],
-              myRating: 'like',
-              maxResults: 50,
-              pageToken: nextPageToken,
-            });
-
-            allItems = allItems.concat(likedVideosResponse.result.items || []);
-            nextPageToken = likedVideosResponse.result.nextPageToken;
-          } while (nextPageToken);
+          // Fetch only the first page of liked videos to avoid hitting rate limits.
+          const likedVideosResponse = await window.gapi.client.youtube.videos.list({
+            part: ['snippet', 'contentDetails'],
+            myRating: 'like',
+            maxResults: 50, // Limit to 50 to avoid rate limit issues.
+          });
           
-          const history = allItems.map((item: any) => ({
+          const historyItems = likedVideosResponse.result.items || [];
+          
+          const history = historyItems.map((item: any) => ({
             title: item.snippet?.title || 'Unknown Title',
             artist: (item.snippet?.channelTitle || 'Unknown Artist').replace(/ - Topic$/, ''),
           }));
@@ -339,7 +333,7 @@ export default function Home() {
           if (history.length > 0) {
             toast({
               title: "Taste Profile Updated!",
-              description: `Analyzed ${history.length} songs from your 'Liked Music' playlist.`
+              description: `Analyzed your ${history.length} most recently liked songs.`
             });
           } else {
              toast({
@@ -351,15 +345,16 @@ export default function Home() {
           toast({
             variant: "destructive",
             title: "Taste Profile Unavailable",
-            description: "Could not find your 'Liked Music' playlist (ID: LM). Please ensure you have one on YouTube Music."
+            description: "Could not find your 'Liked Music' playlist. Please ensure you have one on YouTube Music."
           });
         }
       } catch (e: any) {
         console.error(e);
+        const errorMessage = e.result?.error?.message || e.message || "Could not fetch your YouTube data.";
         toast({
           variant: "destructive",
-          title: "Error fetching playlists",
-          description: e.result?.error?.message || e.message || "Could not fetch your YouTube data."
+          title: "Error fetching YouTube data",
+          description: errorMessage.includes('quotaExceeded') ? "YouTube API quota exceeded. Please try again later." : errorMessage
         })
       } finally {
         setIsLoadingPlaylists(false);
@@ -462,3 +457,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    
