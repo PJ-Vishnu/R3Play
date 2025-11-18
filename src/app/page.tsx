@@ -275,7 +275,6 @@ export default function Home() {
               </div>
             </main>
 
-
             {currentSong && (
               <Player
                 song={currentSong}
