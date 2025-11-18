@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'NeonTune',
+  title: 'R3 Playback',
   description: 'Your personalized YouTube Music DJ client.',
 };
 

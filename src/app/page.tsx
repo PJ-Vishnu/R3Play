@@ -214,7 +214,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />
                   <h1 className="text-xl font-headline font-bold text-primary text-glow">
-                    NeonTune
+                    R3 Playback
                   </h1>
                 </div>
                 <div className="flex-1" />
@@ -226,8 +226,8 @@ export default function Home() {
               </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto">
-              <div className="w-full max-w-screen-xl mx-auto p-4 md:p-6 pb-[160px] md:pb-[90px]">
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[160px] md:pb-[90px]">
+              <div className="w-full max-w-screen-xl mx-auto">
                 <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
                   <CardHeader>
                     <div className="flex items-center gap-3">
