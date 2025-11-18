@@ -1,3 +1,124 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "song-1",
+      "description": "Synthwave sunset over a retro city",
+      "imageUrl": "https://images.unsplash.com/photo-1704700792025-c72f5a543b56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzeW50aHdhdmUlMjBzdW5zZXR8ZW58MHx8fHwxNzYzMzk2NjQzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "synthwave sunset"
+    },
+    {
+      "id": "song-2",
+      "description": "A vibrant disco ball in outer space",
+      "imageUrl": "https://images.unsplash.com/photo-1693407548527-b0e67790973d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb3NtaWMlMjBkaXNjb3xlbnwwfHx8fDE3NjM0Njg0NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cosmic disco"
+    },
+    {
+      "id": "song-3",
+      "description": "Raindrops on a window with city lights blurred in the background",
+      "imageUrl": "https://images.unsplash.com/photo-1587736891536-beb1e48bb22b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cmFpbnklMjB3aW5kb3d8ZW58MHx8fHwxNzYzNDIyOTM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rainy window"
+    },
+    {
+      "id": "song-4",
+      "description": "A graffiti of a broken heart on a brick wall",
+      "imageUrl": "https://images.unsplash.com/photo-1649179633631-5511f7a3695f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aGVhcnQlMjBncmFmZml0aXxlbnwwfHx8fDE3NjM0Njg0NTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "heart graffiti"
+    },
+    {
+      "id": "song-5",
+      "description": "Silhouette of a couple against a glowing cityscape at night",
+      "imageUrl": "https://images.unsplash.com/photo-1715614177635-8d1f3917671d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb3VwbGUlMjBjaXR5c2NhcGV8ZW58MHx8fHwxNzYzNDY4NDUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "couple cityscape"
+    },
+    {
+      "id": "song-6",
+      "description": "Close-up on gold chains and jewelry",
+      "imageUrl": "https://images.unsplash.com/photo-1705326452390-3ecf6070595f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z29sZCUyMGNoYWluc3xlbnwwfHx8fDE3NjM0Njg0NTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gold chains"
+    },
+    {
+      "id": "song-7",
+      "description": "Wavy heat distortion rising from an asphalt road",
+      "imageUrl": "https://images.unsplash.com/photo-1534189899631-018d5a28514b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoZWF0JTIwd2F2ZXN8ZW58MHx8fHwxNzYzNDY4NDUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "heat waves"
+    },
+    {
+      "id": "song-8",
+      "description": "A collection of retro polaroid photos scattered on a table",
+      "imageUrl": "https://images.unsplash.com/photo-1701115149038-f0f11c6737d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZXRybyUyMHBvbGFyb2lkfGVufDB8fHx8MTc2MzQ2ODQ1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "retro polaroid"
+    },
+    {
+      "id": "song-9",
+      "description": "Abstract, long-exposure light trails in the dark",
+      "imageUrl": "https://images.unsplash.com/photo-1484734278752-212d8c88a568?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsaWdodCUyMHRyYWlsc3xlbnwwfHx8fDE3NjM0NjU4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "light trails"
+    },
+    {
+      "id": "song-10",
+      "description": "A neon green, stylized monster peeking from under a bed",
+      "imageUrl": "https://images.unsplash.com/photo-1621747084996-3cd7b4ee9861?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxuZW9uJTIwbW9uc3RlcnxlbnwwfHx8fDE3NjM0Njg0NTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "neon monster"
+    },
+    {
+      "id": "song-11",
+      "description": "A vintage funk band performing on a colorful stage",
+      "imageUrl": "https://images.unsplash.com/photo-1736184766006-377f3e9827a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmdW5rJTIwYmFuZHxlbnwwfHx8fDE3NjM0Njg0NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "funk band"
+    },
+    {
+      "id": "song-12",
+      "description": "A spinning roulette wheel in a glamorous casino",
+      "imageUrl": "https://images.unsplash.com/photo-1738814041356-9f8187530643?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjYXNpbm8lMjByb3VsZXR0ZXxlbnwwfHx8fDE3NjMzOTI5NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "casino roulette"
+    },
+    {
+      "id": "song-13",
+      "description": "The ornate and grand interior of an old opera house",
+      "imageUrl": "https://images.unsplash.com/photo-1549180030-48bf079fb38a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvcGVyYSUyMGhvdXNlfGVufDB8fHx8MTc2MzM4NTEyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "opera house"
+    },
+    {
+      "id": "song-14",
+      "description": "A long, empty desert highway at sunset",
+      "imageUrl": "https://images.unsplash.com/photo-1627811010510-453ae3e8e0b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkZXNlcnQlMjBoaWdod2F5fGVufDB8fHx8MTc2MzM5NTU2Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "desert highway"
+    },
+    {
+      "id": "song-15",
+      "description": "A blurry, energetic crowd at a grunge rock concert",
+      "imageUrl": "https://images.unsplash.com/photo-1625062833789-b0273c8a3f58?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncnVuZ2UlMjBjb25jZXJ0fGVufDB8fHx8MTc2MzQ2ODQ1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "grunge concert"
+    },
+    {
+      "id": "song-16",
+      "description": "A silhouette of a dancer doing the moonwalk",
+      "imageUrl": "https://images.unsplash.com/photo-1532600215277-19ea3f271228?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtb29ud2Fsa2luZyUyMHNpbGhvdWV0dGV8ZW58MHx8fHwxNzYzNDY4NDUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "moonwalking silhouette"
+    },
+    {
+      "id": "song-17",
+      "description": "A close-up of a needle on a spinning vinyl record",
+      "imageUrl": "https://images.unsplash.com/photo-1645523906730-894addb64d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dmlueWwlMjByZWNvcmR8ZW58MHx8fHwxNzYzMzY3MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vinyl record"
+    },
+    {
+      "id": "song-18",
+      "description": "A winding path leading up a misty, atmospheric mountain",
+      "imageUrl": "https://images.unsplash.com/photo-1531257114315-24a694751517?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtaXN0eSUyMG1vdW50YWlufGVufDB8fHx8MTc2MzQ0ODk2OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "misty mountain"
+    },
+    {
+      "id": "song-19",
+      "description": "Dramatic, dark clouds over a stormy ocean",
+      "imageUrl": "https://images.unsplash.com/photo-1470115209269-18dd2d7285cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvY2VhbiUyMHN0b3JtfGVufDB8fHx8MTc2MzQ2ODQ1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ocean storm"
+    },
+    {
+      "id": "song-20",
+      "description": "An acoustic guitar leaning against a weathered brick wall",
+      "imageUrl": "https://images.unsplash.com/photo-1675907936370-86f7a5fbac79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxndWl0YXIlMjB3YWxsfGVufDB8fHx8MTc2MzQ2ODQ1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "guitar wall"
+    }
+  ]
 }
