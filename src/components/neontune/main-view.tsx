@@ -66,12 +66,12 @@ function PlaylistView({
 }) {
   if (playlist.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground animate-in fade-in-50">
-        <Music4 className="w-16 h-16 mb-4 text-primary/50" />
+      <div className="flex flex-col items-center justify-center h-96 text-center text-muted-foreground animate-in fade-in-50">
+        <Music4 className="w-16 h-16 mb-4 text-muted-foreground/50" />
         <h3 className="text-xl font-headline text-foreground">
-          Playlist is empty
+          Your personal DJ is ready
         </h3>
-        <p>Use the AI DJ controls to generate a new playlist.</p>
+        <p>Use the AI controls above to generate a playlist.</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ function PlaylistView({
       <h2 className="font-headline text-3xl font-bold mb-4">Current Playlist</h2>
       <Table>
         <TableHeader>
-          <TableRow className="border-primary/20">
+          <TableRow className="border-border">
             <TableHead className="w-[50px]">#</TableHead>
             <TableHead>Title</TableHead>
             <TableHead className="hidden md:table-cell">Album</TableHead>
@@ -106,7 +106,7 @@ function PlaylistView({
                   {isActive ? (
                     <Equal className="w-5 h-5 text-accent icon-glow" />
                   ) : (
-                    index + 1
+                    <span className="text-muted-foreground">{index + 1}</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -134,7 +134,7 @@ function PlaylistView({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden md:table-cell text-muted-foreground">
                   {song.album}
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
@@ -168,7 +168,7 @@ function AnalysisView({
 
   return (
     <div className="space-y-8 animate-in fade-in-50">
-      <Card className="bg-secondary/30 border-primary/20">
+      <Card className="bg-secondary/30 border-border">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Taste Profile</CardTitle>
         </CardHeader>
@@ -180,7 +180,7 @@ function AnalysisView({
       </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="bg-secondary/30 border-primary/20">
+        <Card className="bg-secondary/30 border-border">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Top Genres</CardTitle>
           </CardHeader>
@@ -199,7 +199,7 @@ function AnalysisView({
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/30 border-primary/20">
+        <Card className="bg-secondary/30 border-border">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Top Artists</CardTitle>
           </CardHeader>
@@ -219,7 +219,7 @@ function AnalysisView({
         </Card>
       </div>
 
-      <Card className="bg-secondary/30 border-primary/20">
+      <Card className="bg-secondary/30 border-border">
         <CardHeader>
           <CardTitle className="font-headline text-xl">Top Songs</CardTitle>
         </CardHeader>

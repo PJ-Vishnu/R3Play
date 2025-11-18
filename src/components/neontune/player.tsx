@@ -3,7 +3,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Pause, Play, SkipBack, SkipForward, Youtube } from "lucide-react";
+import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import ReactPlayer from 'react-player/youtube';
 import type { Song } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -45,9 +45,18 @@ export default function Player({
         playerRef.current.seekTo(newProgress / 100);
     }
   };
+  
+  const YtMusicLogo = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 24C18.6274 24 24 18.6274 24 12C24 5.37258 18.6274 0 12 0C5.37258 0 0 5.37258 0 12C0 18.6274 5.37258 24 12 24Z" fill="#FF0000"/>
+      <path d="M12 17.5C14.9625 17.5 17.5 14.9625 17.5 12C17.5 9.0375 14.9625 6.5 12 6.5C9.0375 6.5 6.5 9.0375 6.5 12C6.5 14.9625 9.0375 17.5 12 17.5Z" fill="white"/>
+      <path d="M10.15 14.2375L15.3 12L10.15 9.7625V14.2375Z" fill="#FF0000"/>
+    </svg>
+  );
+
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-auto bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 md:h-[90px]">
+    <div className="fixed bottom-0 left-0 right-0 h-auto bg-background/90 backdrop-blur-lg border-t border-border z-50 md:h-[90px]">
       <div className="max-w-screen-xl mx-auto flex items-center px-4 md:px-6 py-3 md:py-0 h-full">
         <div style={{ display: 'none' }}>
           <ReactPlayer
@@ -123,8 +132,8 @@ export default function Player({
             </div>
           </div>
           <div className="w-1/4 max-w-[250px] hidden md:flex items-center justify-end">
-              <a href={`https://music.youtube.com/watch?v=${song.videoId}`} target="_blank" rel="noopener noreferrer">
-                  <Youtube className="w-8 h-8 text-red-500 hover:text-red-400" />
+              <a href={`https://music.youtube.com/watch?v=${song.videoId}`} target="_blank" rel="noopener noreferrer" className="opacity-70 hover:opacity-100 transition-opacity">
+                  <YtMusicLogo />
               </a>
           </div>
         </div>

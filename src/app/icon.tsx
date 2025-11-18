@@ -1,3 +1,4 @@
+import { Music } from "lucide-react";
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
@@ -13,20 +14,17 @@ export default function Icon() {
       <div
         style={{
           fontSize: 24,
-          background: "#222222",
+          background: "#111111",
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#39FF14",
-          textShadow: "0 0 4px #39FF14, 0 0 8px #39FF14",
-          fontFamily: '"Space Grotesk", sans-serif',
-          fontWeight: 700,
+          color: "#FF0000",
           borderRadius: 4,
         }}
       >
-        R
+        <Music />
       </div>
     ),
     {
