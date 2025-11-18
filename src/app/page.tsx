@@ -122,7 +122,7 @@ export default function Home() {
     e.preventDefault();
     if (!request) return;
 
-    if (!process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+    if (!process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') {
       toast({
         variant: 'destructive',
         title: "Configuration Missing",
@@ -225,8 +225,8 @@ export default function Home() {
               </div>
             </header>
             
-            <div className="flex-1 overflow-y-auto w-full max-w-screen-2xl mx-auto">
-              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px]">
+            <div className="flex-1 overflow-y-auto">
+              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px] max-w-screen-2xl mx-auto">
                 <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
                   <CardHeader>
                     <div className="flex items-center gap-3">
