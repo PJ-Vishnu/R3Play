@@ -3,16 +3,13 @@
 
 import * as React from "react";
 import {
-  ChevronsLeft,
-  ChevronsRight,
+  Equal,
   ListMusic,
   Loader,
   Mic,
   Music,
-  PanelLeft,
   Sparkles,
   User,
-  Equal,
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
@@ -124,6 +121,16 @@ export default function Home() {
   const handleGeneratePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!request) return;
+
+    if (!process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+      toast({
+        variant: 'destructive',
+        title: "Configuration Missing",
+        description: "Please add your YouTube API Key and Google Client ID to the .env.local file.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setActiveView("playlist");
     try {
@@ -165,7 +172,8 @@ export default function Home() {
       });
     } catch (error: any) {
       console.error(error);
-       if (error.message && error.message.includes("503")) {
+      const errorMessage = error?.result?.error?.message || error?.message || "Could not generate a new playlist.";
+       if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
         toast({
           variant: "destructive",
           title: "AI Model Overloaded",
@@ -175,7 +183,7 @@ export default function Home() {
         toast({
           variant: "destructive",
           title: "Playlist Generation Failed",
-          description: "Could not generate a new playlist.",
+          description: errorMessage,
         });
       }
     } finally {
@@ -216,53 +224,56 @@ export default function Home() {
                 </Button>
               </div>
             </header>
+            
+            <div className="flex-1 overflow-y-auto w-full max-w-screen-2xl mx-auto">
+              <main className="p-4 md:p-6 pb-[160px] md:pb-[90px]">
+                <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="w-6 h-6 text-primary icon-glow" />
+                      <CardTitle className="font-headline text-2xl text-glow">
+                        AI DJ Controls
+                      </CardTitle>
+                    </div>
+                    <CardDescription>
+                      Request a song, artist, or vibe to generate a new playlist.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form
+                      onSubmit={handleGeneratePlaylist}
+                      className="flex flex-col sm:flex-row gap-2"
+                    >
+                      <Input
+                        placeholder="e.g., '90s rock classics' or 'upbeat electronic'"
+                        value={request}
+                        onChange={(e) => setRequest(e.target.value)}
+                        className="text-base"
+                        disabled={isLoading}
+                      />
+                      <Button type="submit" disabled={isLoading} size="lg" className="font-bold gap-2">
+                        {isLoading ? (
+                          <Loader className="animate-spin" />
+                        ) : (
+                          <Mic />
+                        )}
+                        <span className="sm:inline">Request</span>
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
 
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-[160px] md:pb-[90px]">
-              <Card className="mb-6 bg-card border border-primary/20 shadow-lg shadow-primary/10">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-6 h-6 text-primary icon-glow" />
-                    <CardTitle className="font-headline text-2xl text-glow">
-                      AI DJ Controls
-                    </CardTitle>
-                  </div>
-                  <CardDescription>
-                    Request a song, artist, or vibe to generate a new playlist.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form
-                    onSubmit={handleGeneratePlaylist}
-                    className="flex flex-col sm:flex-row gap-2"
-                  >
-                    <Input
-                      placeholder="e.g., '90s rock classics' or 'upbeat electronic'"
-                      value={request}
-                      onChange={(e) => setRequest(e.target.value)}
-                      className="text-base"
-                      disabled={isLoading}
-                    />
-                    <Button type="submit" disabled={isLoading} size="lg" className="font-bold gap-2">
-                      {isLoading ? (
-                        <Loader className="animate-spin" />
-                      ) : (
-                        <Mic />
-                      )}
-                      <span className="sm:inline">Request</span>
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                <MainView
+                  view={activeView}
+                  playlist={playlist}
+                  analysisResult={analysisResult}
+                  isLoading={isLoading}
+                  onPlaySong={handlePlaySong}
+                  activeSongId={currentSong?.id}
+                />
+              </main>
+            </div>
 
-              <MainView
-                view={activeView}
-                playlist={playlist}
-                analysisResult={analysisResult}
-                isLoading={isLoading}
-                onPlaySong={handlePlaySong}
-                activeSongId={currentSong?.id}
-              />
-            </main>
 
             {currentSong && (
               <Player
