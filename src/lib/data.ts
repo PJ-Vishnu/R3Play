@@ -55,10 +55,3 @@ export const SONGS: Song[] = songData.map((song, index) => {
     imageHint: placeholder.imageHint,
   };
 });
-
-export const PLAYLISTS = [
-    { id: "pl-1", name: "Liked Songs", songCount: 128 },
-    { id: "pl-2", name: "Chill Vibes", songCount: 42 },
-    { id: "pl-3", name: "Workout Hits", songCount: 67 },
-    { id: "pl-4", name: "80s Throwback", songCount: 98 },
-];

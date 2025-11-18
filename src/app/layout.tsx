@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { YouTubeProvider } from '@/context/youtube-context';
 
 export const metadata: Metadata = {
   title: 'R3 Playback',
@@ -22,7 +23,9 @@ export default function RootLayout({
          <script src="https://apis.google.com/js/api.js" async defer></script>
       </head>
       <body className="font-body antialiased">
-        {children}
+        <YouTubeProvider>
+          {children}
+        </YouTubeProvider>
         <Toaster />
       </body>
     </html>

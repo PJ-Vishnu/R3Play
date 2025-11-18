@@ -8,8 +8,8 @@ import {
   Plus,
   Radio,
   Sparkles,
+  ThumbsUp,
 } from "lucide-react";
-import { PLAYLISTS } from "@/lib/data";
 import {
   Sidebar,
   SidebarGroup,
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "../ui/button";
 import YouTubeLogin from "./youtube-login";
+import { useYouTube } from "@/context/youtube-context";
+import { Skeleton } from "../ui/skeleton";
 
 
 type NeonTuneSidebarProps = {
@@ -32,6 +34,7 @@ export default function NeonTuneSidebar({
   onAnalyze,
   onViewPlaylist,
 }: NeonTuneSidebarProps) {
+  const { isLoggedIn, playlists, isLoadingPlaylists, likedMusicPlaylist } = useYouTube();
   return (
     <Sidebar
       className="bg-sidebar-background"
@@ -90,13 +93,32 @@ export default function NeonTuneSidebar({
           </Button>
         </SidebarGroupLabel>
         <SidebarMenu>
-          {PLAYLISTS.map((playlist) => (
-            <SidebarMenuItem key={playlist.id}>
-              <SidebarMenuButton>
-                <span>{playlist.name}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {isLoggedIn && isLoadingPlaylists && (
+            <>
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </>
+          )}
+          {isLoggedIn && !isLoadingPlaylists && (
+            <>
+            {likedMusicPlaylist && (
+              <SidebarMenuItem key={likedMusicPlaylist.id}>
+                <SidebarMenuButton>
+                   <ThumbsUp className="w-4 h-4 text-primary" />
+                  <span>{likedMusicPlaylist.snippet?.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+            {playlists.map((playlist) => (
+              <SidebarMenuItem key={playlist.id}>
+                <SidebarMenuButton>
+                  <span>{playlist.snippet?.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+            </>
+          )}
         </SidebarMenu>
       </SidebarGroup>
        <SidebarSeparator />
