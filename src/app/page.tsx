@@ -111,11 +111,19 @@ export default function Home() {
   };
 
   const getHistory = () => {
-    if (!isLoggedIn || listeningHistory.length === 0) {
-       toast({
+    if (!isLoggedIn) {
+      toast({
         variant: "destructive",
-        title: "No Listening History",
-        description: "Login to YouTube and 'like' some songs to build a history, or use the Analyze Taste feature first.",
+        title: "Not Logged In",
+        description: "Please log in with YouTube to use your listening history.",
+      });
+      return null;
+    }
+    if (listeningHistory.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Listening History Found",
+        description: "We couldn't find your 'Liked Music' playlist or it's empty. Please 'like' some songs on YouTube Music to build a taste profile.",
       });
       return null;
     }
@@ -307,10 +315,23 @@ export default function Home() {
             artist: item.snippet.videoOwnerChannelTitle.replace(' - Topic', ''),
           }));
           setListeningHistory(history);
+          if (history.length > 0) {
+            toast({
+              title: "Taste Profile Updated!",
+              description: `Analyzed ${history.length} songs from your 'Liked Music' playlist.`
+            });
+          } else {
+             toast({
+              title: "Taste Profile Empty",
+              description: "Your 'Liked Music' playlist was found, but it's empty. Like some songs on YouTube Music to build your profile!"
+            });
+          }
+        } else {
           toast({
-            title: "Taste Profile Updated!",
-            description: "Your 'Liked Music' playlist has been analyzed."
-          })
+            variant: "destructive",
+            title: "Taste Profile Unavailable",
+            description: "Could not find your 'Liked Music' playlist. Please ensure you have one on YouTube Music."
+          });
         }
       } catch (e) {
         console.error(e);
@@ -336,7 +357,7 @@ export default function Home() {
         <SidebarInset>
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
             <header className="flex h-16 items-center justify-center border-b border-primary/20 px-4 shrink-0">
-              <div className="flex items-center gap-4 w-full">
+              <div className="flex items-center gap-4 w-full max-w-screen-xl mx-auto">
                 <SidebarTrigger className="md:hidden" />
                 <div className="flex items-center gap-2">
                   <Music className="w-6 h-6 text-accent icon-glow" />
