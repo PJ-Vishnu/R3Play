@@ -14,12 +14,13 @@ export async function searchSongOnYouTube(songTitle: string, artist: string): Pr
             maxResults: 1,
         });
 
-        if (response.result.items && response.result.items.length > 0) {
+        if (response.result.items && response.result.items.length > 0 && response.result.items[0].id) {
             return response.result.items[0].id.videoId;
         }
         return null;
-    } catch (error) {
-        console.error("Error searching on YouTube:", error);
+    } catch (error: any) {
+        const errorMessage = error?.result?.error?.message || error?.message || JSON.stringify(error);
+        console.error("Error searching on YouTube:", errorMessage);
         return null;
     }
 }
