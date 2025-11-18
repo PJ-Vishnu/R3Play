@@ -72,19 +72,20 @@ const getUserPlaylistsFlow = ai.defineFlow(
     });
 
     const playlists = playlistsResponse.data.items || [];
-    const likedMusicPlaylist = playlists.find((p: any) => p.snippet?.title === 'Liked music') || 
-                               playlists.find((p: any) => p.id === 'LM') || 
-                               null;
-    const otherPlaylists = playlists.filter((p: any) => p.id !== likedMusicPlaylist?.id);
+    const likedMusicPlaylist =
+      playlists.find((p: any) => p.snippet?.title === 'Liked music') ||
+      playlists.find((p: any) => p.id === 'LM') ||
+      null;
+    const otherPlaylists = playlists.filter(
+      (p: any) => p.id !== likedMusicPlaylist?.id
+    );
 
     let listeningHistory = null;
-    
-    // The 'LM' playlist for "Liked Music" can't be queried directly via playlistItems.
-    // Instead, we need to fetch rated videos.
+
     if (likedMusicPlaylist) {
       let allItems: any[] = [];
       let nextPageToken: string | undefined | null = undefined;
-      
+
       do {
         const ratedVideosResponse = await youtube.videos.list({
           part: ['snippet', 'contentDetails'],
