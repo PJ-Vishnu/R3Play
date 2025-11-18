@@ -47,7 +47,7 @@ export default function Player({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-auto md:h-[90px] bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 flex items-center px-4 md:px-6 py-2 md:py-0">
+    <div className="fixed bottom-0 left-0 right-0 h-auto md:h-[90px] bg-background/90 backdrop-blur-lg border-t border-primary/20 z-50 flex items-center px-4 md:px-6 py-3 md:py-0">
        <div style={{ display: 'none' }}>
         <ReactPlayer
             ref={playerRef}
