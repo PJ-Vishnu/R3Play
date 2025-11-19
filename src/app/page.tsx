@@ -16,6 +16,7 @@ import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
 import MainView from "@/components/neontune/main-view";
 import Player from "@/components/neontune/player";
 import NeonTuneSidebar from "@/components/neontune/sidebar";
+import FullScreenPlayer from "@/components/neontune/full-screen-player";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,6 +31,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import type { Song } from "@/lib/types";
@@ -53,12 +55,13 @@ export default function Home() {
   const [isExtendingRadio, setIsExtendingRadio] = React.useState(false);
   const [request, setRequest] = React.useState("");
   const [isRadioMode, setIsRadioMode] = React.useState(false);
+  const [isFullScreenPlayer, setIsFullScreenPlayer] = React.useState(false);
 
   const { toast } = useToast();
-  const { 
+  const {
     isLoggedIn,
-    setPlaylists, 
-    setLikedMusicPlaylist, 
+    setPlaylists,
+    setLikedMusicPlaylist,
     listeningHistory,
     setListeningHistory,
     setIsLoadingPlaylists,
@@ -84,7 +87,7 @@ export default function Home() {
     try {
       const history = isLoggedIn ? (listeningHistory.length > 0 ? JSON.stringify(listeningHistory) : "") : "";
       const radioRequest = 'a radio mix based on my taste, continuing from the current playlist';
-      
+
       const { playlist: newSongNames } = await generatePlaylistAction(
         history,
         radioRequest
@@ -515,7 +518,22 @@ export default function Home() {
                 onPrev={handlePrev}
                 onProgressChange={handlePlayerProgress}
                 onEnded={handleNext}
+                onOpenFullScreen={() => setIsFullScreenPlayer(true)}
               />
+            )}
+            
+            {currentSong && isFullScreenPlayer && (
+                <FullScreenPlayer
+                    song={currentSong}
+                    isPlaying={isPlaying}
+                    progress={progress}
+                    onPlayPause={handlePlayPause}
+                    onNext={handleNext}
+                    onPrev={handlePrev}
+                    onProgressChange={handlePlayerProgress}
+                    onEnded={handleNext}
+                    onClose={() => setIsFullScreenPlayer(false)}
+                />
             )}
           </div>
         </SidebarInset>

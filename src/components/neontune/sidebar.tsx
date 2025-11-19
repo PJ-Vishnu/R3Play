@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "../ui/button";
 import YouTubeLogin from "./youtube-login";
@@ -39,6 +40,17 @@ export default function NeonTuneSidebar({
   onLoginSuccess,
 }: NeonTuneSidebarProps) {
   const { isLoggedIn, playlists, isLoadingPlaylists, likedMusicPlaylist } = useYouTube();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleMobileClick = (callback: () => void) => {
+    return () => {
+        callback();
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    }
+  }
+
   return (
     <Sidebar
       className="bg-sidebar-background"
@@ -54,7 +66,7 @@ export default function NeonTuneSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Radio" onClick={onStartRadio}>
+            <SidebarMenuButton tooltip="Radio" onClick={handleMobileClick(onStartRadio)}>
               <Radio />
               <span>Radio</span>
             </SidebarMenuButton>
@@ -75,13 +87,13 @@ export default function NeonTuneSidebar({
         </SidebarGroupLabel>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onAnalyze} tooltip="Analyze Taste">
+            <SidebarMenuButton onClick={handleMobileClick(onAnalyze)} tooltip="Analyze Taste">
               <Sparkles className="text-primary icon-glow" />
               <span>Analyze Taste</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={onViewPlaylist} tooltip="Current Playlist">
+            <SidebarMenuButton onClick={handleMobileClick(onViewPlaylist)} tooltip="Current Playlist">
               <ListMusic className="text-primary icon-glow" />
               <span>Current Playlist</span>
             </SidebarMenuButton>
@@ -134,3 +146,5 @@ export default function NeonTuneSidebar({
     </Sidebar>
   );
 }
+
+    

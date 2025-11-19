@@ -18,6 +18,7 @@ type PlayerProps = {
   onPrev: () => void;
   onProgressChange: (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => void;
   onEnded: () => void;
+  onOpenFullScreen: () => void;
 };
 
 export default function Player({
@@ -29,6 +30,7 @@ export default function Player({
   onPrev,
   onProgressChange,
   onEnded,
+  onOpenFullScreen,
 }: PlayerProps) {
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(seconds);
@@ -78,7 +80,10 @@ export default function Player({
         </div>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full">
           {/* Song Info */}
-          <div className="flex items-center gap-3 w-full md:w-1/4 md:max-w-[250px]">
+          <div
+            className="flex items-center gap-3 w-full md:w-1/4 md:max-w-[250px] cursor-pointer"
+            onClick={onOpenFullScreen}
+          >
             <Image
               src={song.albumArtUrl}
               alt={song.album}
@@ -141,3 +146,5 @@ export default function Player({
     </div>
   );
 }
+
+    
