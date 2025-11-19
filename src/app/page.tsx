@@ -50,7 +50,9 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] =
     React.useState<AnalyzeListeningHistoryOutput | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isExtendingRadio, setIsExtendingRadio] = React.useState(false);
   const [request, setRequest] = React.useState("");
+  const [isRadioMode, setIsRadioMode] = React.useState(false);
 
   const { toast } = useToast();
   const { 
@@ -75,17 +77,60 @@ export default function Home() {
     }
   };
 
+  const extendRadio = async () => {
+    if (isExtendingRadio) return; // Prevent multiple simultaneous requests
+    console.log("Extending radio playlist...");
+    setIsExtendingRadio(true);
+    try {
+      const history = isLoggedIn ? (listeningHistory.length > 0 ? JSON.stringify(listeningHistory) : "") : "";
+      const radioRequest = 'a radio mix based on my taste, continuing from the current playlist';
+      
+      const { playlist: newSongNames } = await generatePlaylistAction(
+        history,
+        radioRequest
+      );
+
+      // We only want a few new songs to append
+      const processedNewSongs = await processSongNames(newSongNames.slice(0, 5));
+      if (processedNewSongs.length > 0) {
+        setPlaylist(prev => [...prev, ...processedNewSongs]);
+        toast({
+          title: "Radio Extended",
+          description: `Added ${processedNewSongs.length} new songs to the queue.`,
+        });
+      }
+    } catch (error) {
+       console.error("Failed to extend radio playlist", error);
+    } finally {
+        setIsExtendingRadio(false);
+    }
+  };
+
   const handleNext = () => {
     if (playlist.length === 0) return;
-    setCurrentSongIndex((prevIndex) => {
-      const newIndex =
-        prevIndex === null
-          ? 0
-          : (prevIndex + 1) % playlist.length;
-      return newIndex;
-    });
-    setProgress(0);
-    setIsPlaying(true);
+    if (currentSongIndex === playlist.length - 1 && isRadioMode) {
+      // If it's the last song in radio mode, extend the playlist
+      extendRadio().then(() => {
+        // After extending, we can proceed to the next song if the playlist grew
+        setCurrentSongIndex(prevIndex => {
+            if (prevIndex === null || prevIndex >= playlist.length - 1) return prevIndex; // safety check
+            const newIndex = prevIndex + 1;
+            setProgress(0);
+            setIsPlaying(true);
+            return newIndex;
+        });
+      });
+    } else {
+       setCurrentSongIndex((prevIndex) => {
+        const newIndex =
+          prevIndex === null
+            ? 0
+            : (prevIndex + 1) % playlist.length;
+        setProgress(0);
+        setIsPlaying(true);
+        return newIndex;
+      });
+    }
   };
 
   const handlePrev = () => {
@@ -94,10 +139,10 @@ export default function Home() {
       if (prevIndex === null) return 0;
       const newIndex =
         prevIndex === 0 ? playlist.length - 1 : prevIndex - 1;
+      setProgress(0);
+      setIsPlaying(true);
       return newIndex;
     });
-    setProgress(0);
-    setIsPlaying(true);
   };
 
   const handlePlaySong = (songId: string) => {
@@ -157,9 +202,9 @@ export default function Home() {
     }
   };
 
-    const processGeneratedPlaylist = async (playlistNames: string[]) => {
-      const newPlaylist: Song[] = await Promise.all(
-        playlistNames.slice(0, 15).map(async (name) => {
+    const processSongNames = async (songNames: string[]): Promise<Song[]> => {
+      const newSongs: Song[] = await Promise.all(
+        songNames.map(async (name) => {
           const [title, artist] = name.split(' by ');
           const videoId = await searchSongOnYouTube(title, artist || '');
           let videoDetails = null;
@@ -179,12 +224,18 @@ export default function Home() {
           };
         })
       );
-      
-      const successfulSongs = newPlaylist.filter(song => song.videoId);
+      return newSongs.filter(song => song.videoId);
+    }
 
-      if (successfulSongs.length > 0) {
-        setPlaylist(successfulSongs);
+    const processGeneratedPlaylist = async (playlistNames: string[]) => {
+      const newPlaylist = await processSongNames(playlistNames);
+
+      if (newPlaylist.length > 0) {
+        setPlaylist(newPlaylist);
         setRequest("");
+        setCurrentSongIndex(0);
+        setProgress(0);
+        setIsPlaying(true);
         toast({
           title: "Playlist Generated!",
           description: `Your new playlist is ready.`,
@@ -197,8 +248,9 @@ export default function Home() {
         });
       }
       
-      return successfulSongs.length > 0;
+      return newPlaylist.length > 0;
   }
+
 
   const handleGeneratePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +270,7 @@ export default function Home() {
 
     setIsLoading(true);
     setActiveView("playlist");
+    setIsRadioMode(false); // User-requested playlist is not radio mode
     try {
       const { playlist: playlistNames } = await generatePlaylistAction(
         history,
@@ -269,6 +322,7 @@ export default function Home() {
     const radioRequest = 'a radio mix based on my taste';
     setIsLoading(true);
     setActiveView("playlist");
+    setIsRadioMode(true);
     try {
       const { playlist: playlistNames } = await generatePlaylistAction(
         history,
@@ -281,6 +335,8 @@ export default function Home() {
         setCurrentSongIndex(0);
         setIsPlaying(true);
         setProgress(0);
+      } else {
+        setIsRadioMode(false);
       }
 
     } catch (error: any)
@@ -300,6 +356,7 @@ export default function Home() {
           description: errorMessage,
         });
       }
+      setIsRadioMode(false);
     } finally {
       setIsLoading(false);
     }
@@ -323,6 +380,7 @@ export default function Home() {
         });
 
         const playlists = playlistsResponse.result.items || [];
+        
         const likedMusic = playlists.find((p: any) => p.snippet?.title === 'Liked music' || p.id === 'LM') || null;
         const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM' && p.snippet?.title !== 'Liked music');
 
@@ -353,7 +411,7 @@ export default function Home() {
         } else {
             toast({
             title: "Taste Profile Empty",
-            description: "Your 'Liked Music' playlist was found, but it's empty. Like some songs on YouTube Music to build your profile!"
+            description: "We couldn't find your liked songs. Like some songs on YouTube Music to build your profile!"
           });
         }
       } catch (e: any) {
@@ -465,3 +523,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    
