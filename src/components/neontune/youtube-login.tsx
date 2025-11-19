@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Youtube } from "lucide-react";
+import { LogOut, Youtube } from "lucide-react";
 import { SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { useToast } from '@/hooks/use-toast';
 import { useYouTube } from '@/context/youtube-context';
@@ -120,16 +120,18 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
         toast({ title: "Logged out." });
     }
 
-    return (
-        <SidebarMenuItem>
-            <SidebarMenuButton onClick={isLoggedIn ? handleLogout : handleLogin} disabled={!isReady}>
-              <Youtube className="text-red-500" />
-              <span>{isLoggedIn ? "Logout from YouTube" : "Login with YouTube"}</span>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
-    );
+    if (!isLoggedIn) {
+        return (
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogin} disabled={!isReady}>
+                <Youtube className="text-red-500" />
+                <span>Login with YouTube</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        );
+    }
+
+    return null;
 };
 
 export default YouTubeLogin;
-
-    

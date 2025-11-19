@@ -10,6 +10,7 @@ import {
   Music,
   Sparkles,
   User,
+  LogOut
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
@@ -37,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Song } from "@/lib/types";
 import { searchSongOnYouTube, getYouTubeVideoDetails } from "@/lib/youtube";
 import { useYouTube } from "@/context/youtube-context";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 export default function Home() {
@@ -60,11 +62,13 @@ export default function Home() {
   const { toast } = useToast();
   const {
     isLoggedIn,
+    setIsLoggedIn,
     setPlaylists,
     setLikedMusicPlaylist,
     listeningHistory,
     setListeningHistory,
     setIsLoadingPlaylists,
+    clearPlaylists,
   } = useYouTube();
 
   const currentSong =
@@ -111,29 +115,21 @@ export default function Home() {
 
   const handleNext = () => {
     if (playlist.length === 0) return;
+    
+    // If it's the last song in radio mode, extend the playlist
     if (currentSongIndex === playlist.length - 1 && isRadioMode) {
-      // If it's the last song in radio mode, extend the playlist
-      extendRadio().then(() => {
-        // After extending, we can proceed to the next song if the playlist grew
-        setCurrentSongIndex(prevIndex => {
-            if (prevIndex === null || prevIndex >= playlist.length - 1) return prevIndex; // safety check
-            const newIndex = prevIndex + 1;
-            setProgress(0);
-            setIsPlaying(true);
-            return newIndex;
-        });
-      });
-    } else {
-       setCurrentSongIndex((prevIndex) => {
-        const newIndex =
-          prevIndex === null
-            ? 0
-            : (prevIndex + 1) % playlist.length;
-        setProgress(0);
-        setIsPlaying(true);
-        return newIndex;
-      });
+      extendRadio(); // This will append songs, the index will naturally continue
     }
+    
+    setCurrentSongIndex((prevIndex) => {
+      const newIndex =
+        prevIndex === null
+          ? 0
+          : (prevIndex + 1) % playlist.length;
+      setProgress(0);
+      setIsPlaying(true);
+      return newIndex;
+    });
   };
 
   const handlePrev = () => {
@@ -183,7 +179,7 @@ export default function Home() {
         toast({
             variant: "destructive",
             title: "No Listening History",
-            description: "We couldn't find any liked songs. Please like some songs on YouTube Music to build your taste profile.",
+            description: "We couldn't find any liked songs. Please like some songs on YouTube Music to build your profile.",
         });
         return;
     }
@@ -429,6 +425,18 @@ export default function Home() {
         setIsLoadingPlaylists(false);
       }
   };
+  
+    const handleLogout = () => {
+        const token = window.gapi.client.getToken();
+        if (token) {
+            window.google.accounts.oauth2.revoke(token.access_token, () => {});
+        }
+        window.gapi.client.setToken(null);
+        setIsLoggedIn(false);
+        clearPlaylists();
+        toast({ title: "Logged out." });
+    }
+
 
   return (
     <SidebarProvider>
@@ -452,9 +460,27 @@ export default function Home() {
                 </div>
                 <div className="flex-1" />
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <User className="w-5 h-5" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <User className="w-5 h-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {isLoggedIn ? (
+                        <DropdownMenuItem onClick={handleLogout}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuLabel className="font-normal text-muted-foreground">
+                          Not logged in.
+                        </DropdownMenuLabel>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </header>
@@ -541,5 +567,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
-    

@@ -71,12 +71,6 @@ export default function NeonTuneSidebar({
               <span>Radio</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Library">
-              <Library />
-              <span>Library</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
       <SidebarSeparator />
@@ -146,5 +140,3 @@ export default function NeonTuneSidebar({
     </Sidebar>
   );
 }
-
-    
