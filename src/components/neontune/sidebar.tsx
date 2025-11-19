@@ -31,6 +31,7 @@ type NeonTuneSidebarProps = {
   onViewPlaylist: () => void;
   onStartRadio: () => void;
   onLoginSuccess: () => void;
+  onCreatePlaylist: () => void;
 };
 
 export default function NeonTuneSidebar({
@@ -38,6 +39,7 @@ export default function NeonTuneSidebar({
   onViewPlaylist,
   onStartRadio,
   onLoginSuccess,
+  onCreatePlaylist
 }: NeonTuneSidebarProps) {
   const { isLoggedIn, playlists, isLoadingPlaylists, likedMusicPlaylist } = useYouTube();
   const { setOpenMobile, isMobile } = useSidebar();
@@ -98,7 +100,7 @@ export default function NeonTuneSidebar({
       <SidebarGroup className="flex-1 overflow-y-auto">
         <SidebarGroupLabel className="flex items-center justify-between">
           Playlists
-          <Button variant="ghost" size="icon" className="h-6 w-6">
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onCreatePlaylist}>
             <Plus className="h-4 w-4" />
           </Button>
         </SidebarGroupLabel>

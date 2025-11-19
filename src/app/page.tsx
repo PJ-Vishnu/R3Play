@@ -10,7 +10,9 @@ import {
   Music,
   Sparkles,
   User,
-  LogOut
+  LogOut,
+  ListPlus,
+  Plus
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
@@ -39,6 +41,15 @@ import type { Song } from "@/lib/types";
 import { searchSongOnYouTube, getYouTubeVideoDetails } from "@/lib/youtube";
 import { useYouTube } from "@/context/youtube-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 export default function Home() {
@@ -59,14 +70,25 @@ export default function Home() {
   const [isRadioMode, setIsRadioMode] = React.useState(false);
   const [isFullScreenPlayer, setIsFullScreenPlayer] = React.useState(false);
 
+  // Playlist management state
+  const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = React.useState(false);
+  const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = React.useState(false);
+  const [songToAdd, setSongToAdd] = React.useState<Song | null>(null);
+  const [newPlaylistName, setNewPlaylistName] = React.useState("");
+  const [isCreatingPlaylist, setIsCreatingPlaylist] = React.useState(false);
+
+
   const { toast } = useToast();
   const {
     isLoggedIn,
     setIsLoggedIn,
+    playlists,
     setPlaylists,
+    likedMusicPlaylist,
     setLikedMusicPlaylist,
     listeningHistory,
     setListeningHistory,
+    isLoadingPlaylists,
     setIsLoadingPlaylists,
     clearPlaylists,
   } = useYouTube();
@@ -437,6 +459,77 @@ export default function Home() {
         toast({ title: "Logged out." });
     }
 
+    const openAddToPlaylist = (song: Song) => {
+        if (!isLoggedIn) {
+            toast({ variant: 'destructive', title: 'Login Required', description: 'Please log in to add songs to a playlist.' });
+            return;
+        }
+        setSongToAdd(song);
+        setIsAddToPlaylistOpen(true);
+    };
+
+    const handleAddSongToPlaylist = async (playlistId: string) => {
+        if (!songToAdd) return;
+        try {
+            await window.gapi.client.youtube.playlistItems.insert({
+                part: ['snippet'],
+                resource: {
+                    snippet: {
+                        playlistId: playlistId,
+                        resourceId: {
+                            kind: 'youtube#video',
+                            videoId: songToAdd.videoId,
+                        },
+                    },
+                },
+            });
+            toast({ title: 'Song Added', description: `"${songToAdd.title}" has been added.` });
+        } catch (error: any) {
+            console.error('Error adding song to playlist:', error);
+            toast({ variant: 'destructive', title: 'Error', description: error.result?.error?.message || 'Could not add song.' });
+        } finally {
+            setIsAddToPlaylistOpen(false);
+            setSongToAdd(null);
+        }
+    };
+    
+    const openCreatePlaylist = () => {
+        if (!isLoggedIn) {
+            toast({ variant: 'destructive', title: 'Login Required', description: 'Please log in to create a playlist.' });
+            return;
+        }
+        setIsCreatePlaylistOpen(true);
+    };
+
+    const handleCreatePlaylist = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newPlaylistName) return;
+        setIsCreatingPlaylist(true);
+        try {
+            const response = await window.gapi.client.youtube.playlists.insert({
+                part: ['snippet', 'status'],
+                resource: {
+                    snippet: {
+                        title: newPlaylistName,
+                        description: 'Created with R3 Playback',
+                    },
+                    status: {
+                        privacyStatus: 'public',
+                    },
+                },
+            });
+            setPlaylists(prev => [response.result, ...prev]);
+            toast({ title: 'Playlist Created', description: `"${newPlaylistName}" has been created.` });
+        } catch (error: any) {
+            console.error('Error creating playlist:', error);
+            toast({ variant: 'destructive', title: 'Error', description: error.result?.error?.message || 'Could not create playlist.' });
+        } finally {
+            setIsCreatePlaylistOpen(false);
+            setNewPlaylistName("");
+            setIsCreatingPlaylist(false);
+        }
+    };
+
 
   return (
     <SidebarProvider>
@@ -446,6 +539,7 @@ export default function Home() {
           onViewPlaylist={viewPlaylist}
           onStartRadio={handleStartRadio}
           onLoginSuccess={handleLoginSuccess}
+          onCreatePlaylist={openCreatePlaylist}
         />
         <SidebarInset>
           <div className="flex flex-col h-full max-h-svh overflow-hidden">
@@ -530,6 +624,7 @@ export default function Home() {
                   isLoading={isLoading}
                   onPlaySong={handlePlaySong}
                   activeSongId={currentSong?.id}
+                  onAddToPlaylist={openAddToPlaylist}
                 />
               </div>
             </main>
@@ -559,11 +654,65 @@ export default function Home() {
                     onProgressChange={handlePlayerProgress}
                     onEnded={handleNext}
                     onClose={() => setIsFullScreenPlayer(false)}
+                    onAddToPlaylist={openAddToPlaylist}
                 />
             )}
           </div>
         </SidebarInset>
       </div>
+
+       <Dialog open={isAddToPlaylistOpen} onOpenChange={setIsAddToPlaylistOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add to Playlist</DialogTitle>
+            <DialogDescription>
+              Select a playlist to add &quot;{songToAdd?.title}&quot; to.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-64">
+            <div className="flex flex-col gap-2 p-1">
+              {[likedMusicPlaylist, ...playlists]
+                .filter(p => p != null && p.snippet)
+                .map((p: any) => (
+                  <Button
+                    key={p.id}
+                    variant="ghost"
+                    className="justify-start gap-3"
+                    onClick={() => handleAddSongToPlaylist(p.id)}
+                  >
+                    {p.id === 'LM' ? <ThumbsUp className="w-4 h-4 text-primary" /> : <ListMusic className="w-4 h-4 text-muted-foreground" />}
+                    <span>{p.snippet.title}</span>
+                  </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isCreatePlaylistOpen} onOpenChange={setIsCreatePlaylistOpen}>
+        <DialogContent>
+            <form onSubmit={handleCreatePlaylist}>
+          <DialogHeader>
+            <DialogTitle>Create New Playlist</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+             <Input
+                placeholder="My Awesome Playlist"
+                value={newPlaylistName}
+                onChange={(e) => setNewPlaylistName(e.target.value)}
+                disabled={isCreatingPlaylist}
+              />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setIsCreatePlaylistOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={isCreatingPlaylist}>
+                {isCreatingPlaylist ? <Loader className="animate-spin" /> : <Plus />}
+                Create
+            </Button>
+          </DialogFooter>
+            </form>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

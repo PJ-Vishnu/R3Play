@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { Clock, Equal, Loader, Music, Music4 } from "lucide-react";
+import { Clock, Equal, Loader, Music, Music4, Plus } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { Song } from "@/lib/types";
+import { Button } from "../ui/button";
 
 type MainViewProps = {
   view: "playlist" | "analysis";
@@ -24,6 +25,7 @@ type MainViewProps = {
   isLoading: boolean;
   onPlaySong: (songId: string) => void;
   activeSongId?: string | null;
+  onAddToPlaylist: (song: Song) => void;
 };
 
 export default function MainView({
@@ -33,6 +35,7 @@ export default function MainView({
   isLoading,
   onPlaySong,
   activeSongId,
+  onAddToPlaylist,
 }: MainViewProps) {
   if (isLoading) {
     return (
@@ -51,6 +54,7 @@ export default function MainView({
       playlist={playlist}
       onPlaySong={onPlaySong}
       activeSongId={activeSongId}
+      onAddToPlaylist={onAddToPlaylist}
     />
   );
 }
@@ -59,10 +63,12 @@ function PlaylistView({
   playlist,
   onPlaySong,
   activeSongId,
+  onAddToPlaylist,
 }: {
   playlist: Song[];
   onPlaySong: (songId: string) => void;
   activeSongId?: string | null;
+  onAddToPlaylist: (song: Song) => void;
 }) {
   if (playlist.length === 0) {
     return (
@@ -85,6 +91,7 @@ function PlaylistView({
             <TableHead className="w-[50px]">#</TableHead>
             <TableHead>Title</TableHead>
             <TableHead className="hidden md:table-cell">Album</TableHead>
+            <TableHead className="hidden md:table-cell w-[50px]"></TableHead>
             <TableHead className="text-right">
               <Clock className="inline-block w-4 h-4" />
             </TableHead>
@@ -98,7 +105,7 @@ function PlaylistView({
                 key={song.id}
                 onClick={() => onPlaySong(song.id)}
                 className={cn(
-                  "cursor-pointer border-transparent hover:bg-secondary/50",
+                  "cursor-pointer border-transparent hover:bg-secondary/50 group",
                   isActive && "bg-primary/10 text-primary"
                 )}
               >
@@ -136,6 +143,19 @@ function PlaylistView({
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground">
                   {song.album}
+                </TableCell>
+                 <TableCell className="hidden md:table-cell">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddToPlaylist(song);
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">
                   {`${Math.floor(song.duration / 60)}:${(song.duration % 60)

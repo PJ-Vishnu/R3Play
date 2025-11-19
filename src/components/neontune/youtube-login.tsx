@@ -47,7 +47,7 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
         }
         const tokenClient = window.google.accounts.oauth2.initTokenClient({
             client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/youtube.readonly',
+            scope: 'https://www.googleapis.com/auth/youtube',
             callback: (tokenResponse: any) => {
                 if (tokenResponse.access_token) {
                     window.gapi.client.setToken(tokenResponse);

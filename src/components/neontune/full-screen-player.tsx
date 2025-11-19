@@ -3,7 +3,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { ChevronDown, Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { ChevronDown, Pause, Play, Plus, SkipBack, SkipForward } from "lucide-react";
 import ReactPlayer from 'react-player/youtube';
 import type { Song } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ type FullScreenPlayerProps = {
   onProgressChange: (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => void;
   onEnded: () => void;
   onClose: () => void;
+  onAddToPlaylist: (song: Song) => void;
 };
 
 export default function FullScreenPlayer({
@@ -32,6 +33,7 @@ export default function FullScreenPlayer({
   onProgressChange,
   onEnded,
   onClose,
+  onAddToPlaylist
 }: FullScreenPlayerProps) {
   const formatTime = (seconds: number) => {
     const totalSeconds = Math.floor(seconds);
@@ -89,8 +91,15 @@ export default function FullScreenPlayer({
         </div>
 
         <div className="w-full">
-            <h2 className="text-3xl font-bold font-headline truncate">{song.title}</h2>
-            <p className="text-lg text-muted-foreground mt-1 truncate">{song.artist}</p>
+            <div className="flex items-center justify-center gap-4">
+                <div className="flex-1 overflow-hidden">
+                    <h2 className="text-3xl font-bold font-headline truncate">{song.title}</h2>
+                    <p className="text-lg text-muted-foreground mt-1 truncate">{song.artist}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => onAddToPlaylist(song)} className="text-muted-foreground hover:text-foreground shrink-0">
+                    <Plus className="w-6 h-6" />
+                </Button>
+            </div>
         </div>
         
         <div className="w-full max-w-md">
@@ -135,5 +144,4 @@ export default function FullScreenPlayer({
     </div>
   );
 }
-
     
