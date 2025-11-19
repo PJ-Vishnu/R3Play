@@ -23,7 +23,7 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
     const [isGapiReady, setIsGapiReady] = useState(false);
     const [isGsiReady, setIsGsiReady] = useState(false);
     const { toast } = useToast();
-    const { isLoggedIn, setIsLoggedIn, clearYouTubeData } = useYouTube();
+    const { isLoggedIn, setIsLoggedIn } = useYouTube();
 
     const apiKey = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -89,24 +89,23 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
     }, [gapiLoaded, gsiLoaded]);
 
     useEffect(() => {
-        if (isGapiReady && isGsiReady) {
-            const storedToken = localStorage.getItem('gapi_token');
-            if (storedToken) {
-                try {
-                    const token = JSON.parse(storedToken);
-                    // Check if token is expired, if so, clear it.
-                    // The 'expires_in' is in seconds from the time it was fetched. We need to store a timestamp.
-                    // For simplicity, we'll just use the token and let it fail if expired, user can re-login.
-                    window.gapi.client.setToken(token);
-                    setIsLoggedIn(true);
-                    onLoginSuccess();
-                } catch (e) {
-                    console.error("Failed to parse token from localStorage", e);
-                    localStorage.removeItem('gapi_token');
-                }
+        if (isLoggedIn || !isGapiReady || !isGsiReady) {
+            return;
+        }
+
+        const storedToken = localStorage.getItem('gapi_token');
+        if (storedToken) {
+            try {
+                const token = JSON.parse(storedToken);
+                window.gapi.client.setToken(token);
+                setIsLoggedIn(true);
+                onLoginSuccess();
+            } catch (e) {
+                console.error("Failed to parse token from localStorage", e);
+                localStorage.removeItem('gapi_token');
             }
         }
-    }, [isGapiReady, isGsiReady, setIsLoggedIn, onLoginSuccess]);
+    }, [isGapiReady, isGsiReady, isLoggedIn, setIsLoggedIn, onLoginSuccess]);
     
 
     const handleLogin = () => {
