@@ -129,10 +129,17 @@ export default function Home() {
       const history = isLoggedIn ? (listeningHistory.length > 0 ? JSON.stringify(listeningHistory) : "") : "";
       const radioRequest = 'a radio mix based on my taste, continuing from the current playlist';
 
-      const { playlist: newSongNames } = await generatePlaylistAction(
+      const response = await generatePlaylistAction(
         history,
         radioRequest
       );
+      
+      const newSongNames = response?.playlist;
+
+      if (!newSongNames || !Array.isArray(newSongNames)) {
+        console.error("Invalid response from generatePlaylistAction");
+        return;
+      }
 
       // We only want a few new songs to append
       const processedNewSongs = await processSongNames(newSongNames.slice(0, 5));
@@ -153,26 +160,29 @@ export default function Home() {
   const handleNext = () => {
     if (playlist.length === 0) return;
     
-    // If it's the last song in radio mode, extend the playlist
-    if (currentSongIndex === playlist.length - 1 && isRadioMode) {
-      extendRadio(); // This will append songs, the index will naturally continue
-    }
-    
     setCurrentSongIndex((prevIndex) => {
-      if (prevIndex === null) {
-          setProgress(0);
-          setIsPlaying(true);
-          return 0;
-      }
-      // Stop playback if it's the last song and not in radio mode.
-      if (prevIndex === playlist.length - 1 && !isRadioMode) {
-          setIsPlaying(false);
-          return prevIndex;
-      }
-      const newIndex = (prevIndex + 1) % playlist.length;
-      setProgress(0);
-      setIsPlaying(true);
-      return newIndex;
+        if (prevIndex === null) {
+            setProgress(0);
+            setIsPlaying(true);
+            return 0;
+        }
+
+        // If it's the last song in radio mode, extend the playlist
+        if (prevIndex === playlist.length - 1 && isRadioMode) {
+          extendRadio(); 
+          // The index will continue to the new songs when they are added
+        }
+        
+        // Stop playback if it's the last song and not in radio mode.
+        if (prevIndex === playlist.length - 1 && !isRadioMode) {
+            setIsPlaying(false);
+            return prevIndex;
+        }
+
+        const newIndex = (prevIndex + 1) % playlist.length;
+        setProgress(0);
+        setIsPlaying(true);
+        return newIndex;
     });
   };
 
@@ -268,6 +278,7 @@ export default function Home() {
     const processSongNames = async (songNames: string[]): Promise<Song[]> => {
       const newSongs: Song[] = await Promise.all(
         songNames.map(async (name) => {
+          if (typeof name !== 'string') return null;
           const [title, artist] = name.split(' by ');
           const videoId = await searchSongOnYouTube(title, artist || '');
           let videoDetails = null;
@@ -287,7 +298,7 @@ export default function Home() {
           };
         })
       );
-      return newSongs.filter(song => song.videoId);
+      return newSongs.filter((song): song is Song => !!song && !!song.videoId);
     }
 
     const processGeneratedPlaylist = async (playlistNames: string[]) => {
@@ -335,28 +346,43 @@ export default function Home() {
     setActiveView("playlist");
     setIsRadioMode(false); // User-requested playlist is not radio mode
     try {
-      const { playlist: playlistNames } = await generatePlaylistAction(
+      const response = await generatePlaylistAction(
         history,
         request
       );
+
+      const playlistNames = response?.playlist;
+
+      if (!playlistNames || !Array.isArray(playlistNames)) {
+        toast({
+            variant: "destructive",
+            title: "Playlist Generation Failed",
+            description: "The AI returned an invalid response. Please try again.",
+        });
+        throw new Error("Invalid playlist response from AI");
+      }
 
       await processGeneratedPlaylist(playlistNames);
 
     } catch (error: any) {
       console.error(error);
-      const errorMessage = error?.result?.error?.message || error?.message || "Could not generate a new playlist.";
-       if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
-        toast({
-          variant: "destructive",
-          title: "AI Model Overloaded",
-          description: "The AI is currently busy. Please try again in a moment.",
-        });
+      if (error.message.includes("Invalid playlist response from AI")) {
+          // Toast is already shown
       } else {
-        toast({
-          variant: "destructive",
-          title: "Playlist Generation Failed",
-          description: errorMessage,
-        });
+        const errorMessage = error?.result?.error?.message || error?.message || "Could not generate a new playlist.";
+         if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
+          toast({
+            variant: "destructive",
+            title: "AI Model Overloaded",
+            description: "The AI is currently busy. Please try again in a moment.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Playlist Generation Failed",
+            description: errorMessage,
+          });
+        }
       }
     } finally {
       setIsLoading(false);
@@ -375,7 +401,7 @@ export default function Home() {
     
     const history = getHistoryForAI();
     // For radio, we can proceed even with null/empty history
-    if (history === null) return;
+    if (history === null && isLoggedIn) return;
 
      if (!isLoggedIn) {
       toast({
@@ -389,11 +415,22 @@ export default function Home() {
     setActiveView("playlist");
     setIsRadioMode(true);
     try {
-      const { playlist: playlistNames } = await generatePlaylistAction(
-        history,
+      const response = await generatePlaylistAction(
+        history ?? "",
         radioRequest
       );
       
+      const playlistNames = response?.playlist;
+
+      if (!playlistNames || !Array.isArray(playlistNames)) {
+        toast({
+            variant: "destructive",
+            title: "Radio Failed",
+            description: "The AI returned an invalid response. Please try again.",
+        });
+        throw new Error("Invalid playlist response from AI");
+      }
+
       const wasPlaylistCreated = await processGeneratedPlaylist(playlistNames);
 
       if (wasPlaylistCreated) {
@@ -407,19 +444,23 @@ export default function Home() {
     } catch (error: any)
       {
       console.error(error);
-      const errorMessage = error?.result?.error?.message || error?.message || "Could not generate radio playlist.";
-       if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
-        toast({
-          variant: "destructive",
-          title: "AI Model Overloaded",
-          description: "The AI is currently busy. Please try again in a moment.",
-        });
+      if (error.message.includes("Invalid playlist response from AI")) {
+          // Toast is already shown
       } else {
-        toast({
-          variant: "destructive",
-          title: "Radio Failed",
-          description: errorMessage,
-        });
+        const errorMessage = error?.result?.error?.message || error?.message || "Could not generate radio playlist.";
+         if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
+          toast({
+            variant: "destructive",
+            title: "AI Model Overloaded",
+            description: "The AI is currently busy. Please try again in a moment.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Radio Failed",
+            description: errorMessage,
+          });
+        }
       }
       setIsRadioMode(false);
     } finally {
@@ -781,5 +822,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
-    
