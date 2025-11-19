@@ -493,20 +493,26 @@ export default function Home() {
   };
   
     const handleLogout = () => {
-        const tokenStr = localStorage.getItem('gapi_token');
-        if (tokenStr) {
-            try {
+        try {
+            const tokenStr = localStorage.getItem('gapi_token');
+            if (tokenStr) {
                 const token = JSON.parse(tokenStr);
-                 if (token && token.access_token) {
+                if (token && token.access_token) {
                     window.google.accounts.oauth2.revoke(token.access_token, () => {});
                 }
-            } catch(e) {
-                console.error("Error parsing token for revocation", e);
             }
+        } catch(e) {
+            console.error("Error parsing or revoking token", e);
         }
+        
         window.gapi.client.setToken(null);
         setIsLoggedIn(false);
         clearYouTubeData();
+        // Reset local state
+        setPlaylist([]);
+        setCurrentSongIndex(null);
+        setAnalysisResult(null);
+        
         toast({ title: "Logged out." });
     }
 

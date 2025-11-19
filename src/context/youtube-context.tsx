@@ -30,25 +30,7 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [likedMusicPlaylist, setLikedMusicPlaylist] = useState<any | null>(null);
     const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(true); // Start as true
     const [listeningHistory, setListeningHistory] = useState<ListeningHistoryItem[]>([]);
-
-    useEffect(() => {
-        try {
-            const storedPlaylists = localStorage.getItem('yt-playlists');
-            const storedLikedMusic = localStorage.getItem('yt-likedMusicPlaylist');
-            const storedHistory = localStorage.getItem('yt-listeningHistory');
-
-            if (storedPlaylists) setPlaylists(JSON.parse(storedPlaylists));
-            if (storedLikedMusic) setLikedMusicPlaylist(JSON.parse(storedLikedMusic));
-            if (storedHistory) setListeningHistory(JSON.parse(storedHistory));
-
-        } catch (error) {
-            console.error("Failed to parse data from localStorage", error);
-            clearYouTubeData();
-        } finally {
-            setIsLoadingPlaylists(false);
-        }
-    }, []);
-
+    
     const clearYouTubeData = useCallback(() => {
         setPlaylists([]);
         setLikedMusicPlaylist(null);
@@ -59,6 +41,26 @@ export const YouTubeProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.removeItem('yt-analysisResult');
         localStorage.removeItem('gapi_token');
     }, []);
+
+    useEffect(() => {
+        try {
+            const storedPlaylists = localStorage.getItem('yt-playlists');
+            const storedLikedMusic = localStorage.getItem('yt-likedMusicPlaylist');
+            const storedHistory = localStorage.getItem('yt-listeningHistory');
+
+            if (isLoggedIn) {
+                if (storedPlaylists) setPlaylists(JSON.parse(storedPlaylists));
+                if (storedLikedMusic) setLikedMusicPlaylist(JSON.parse(storedLikedMusic));
+                if (storedHistory) setListeningHistory(JSON.parse(storedHistory));
+            }
+
+        } catch (error) {
+            console.error("Failed to parse data from localStorage", error);
+            clearYouTubeData();
+        } finally {
+            setIsLoadingPlaylists(false);
+        }
+    }, [isLoggedIn, clearYouTubeData]);
 
 
     const handleSetPlaylists = (data: any[]) => {

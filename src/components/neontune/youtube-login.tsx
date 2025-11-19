@@ -99,14 +99,14 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
                     // For simplicity, we'll just use the token and let it fail if expired, user can re-login.
                     window.gapi.client.setToken(token);
                     setIsLoggedIn(true);
-                    // No need to call onLoginSuccess here, data is loaded from localStorage in context
+                    onLoginSuccess();
                 } catch (e) {
                     console.error("Failed to parse token from localStorage", e);
                     localStorage.removeItem('gapi_token');
                 }
             }
         }
-    }, [isGapiReady, isGsiReady, setIsLoggedIn]);
+    }, [isGapiReady, isGsiReady, setIsLoggedIn, onLoginSuccess]);
     
 
     const handleLogin = () => {
@@ -126,24 +126,6 @@ const YouTubeLogin: React.FC<YouTubeLoginProps> = ({ onLoginSuccess }) => {
         }
     };
     
-    const handleLogout = () => {
-        const tokenStr = localStorage.getItem('gapi_token');
-        if (tokenStr) {
-            try {
-                const token = JSON.parse(tokenStr);
-                 if (token && token.access_token) {
-                    window.google.accounts.oauth2.revoke(token.access_token, () => {});
-                }
-            } catch(e) {
-                console.error("Error parsing token for revocation", e);
-            }
-        }
-        window.gapi.client.setToken(null);
-        setIsLoggedIn(false);
-        clearYouTubeData();
-        toast({ title: "Logged out." });
-    }
-
     if (!isLoggedIn) {
         return (
             <SidebarMenuItem>
