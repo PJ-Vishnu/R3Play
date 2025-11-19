@@ -482,11 +482,19 @@ export default function Home() {
       } catch (e: any) {
         console.error(e);
         const errorMessage = e.result?.error?.message || e.message || "Could not fetch your YouTube data.";
-        toast({
-          variant: "destructive",
-          title: "Error fetching YouTube data",
-          description: errorMessage.includes('quotaExceeded') ? "YouTube API quota exceeded. Please try again later." : errorMessage
-        })
+        if (errorMessage.includes('quotaExceeded')) {
+            toast({
+                variant: "destructive",
+                title: "YouTube API Quota Exceeded",
+                description: "You've hit the daily limit for YouTube API requests. Please try again tomorrow.",
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Error fetching YouTube data",
+                description: errorMessage
+            });
+        }
       } finally {
         setIsLoadingPlaylists(false);
       }
@@ -773,3 +781,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    
