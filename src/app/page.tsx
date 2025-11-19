@@ -12,7 +12,9 @@ import {
   User,
   LogOut,
   ListPlus,
-  Plus
+  Plus,
+  ThumbsUp,
+  PanelLeft,
 } from "lucide-react";
 import type { AnalyzeListeningHistoryOutput } from "@/ai/flows/analyze-listening-history";
 import { analyzeHistoryAction, generatePlaylistAction } from "@/app/actions";
@@ -90,11 +92,24 @@ export default function Home() {
     setListeningHistory,
     isLoadingPlaylists,
     setIsLoadingPlaylists,
-    clearPlaylists,
+    clearYouTubeData,
   } = useYouTube();
 
   const currentSong =
     currentSongIndex !== null ? playlist[currentSongIndex] : null;
+
+  // Load analysis result from localStorage on initial render
+  React.useEffect(() => {
+    try {
+      const storedAnalysis = localStorage.getItem('yt-analysisResult');
+      if (storedAnalysis) {
+        setAnalysisResult(JSON.parse(storedAnalysis));
+      }
+    } catch (error) {
+      console.error("Failed to parse analysis result from localStorage", error);
+      localStorage.removeItem('yt-analysisResult');
+    }
+  }, []);
 
   const handlePlayPause = () => {
     if (currentSongIndex === null && playlist.length > 0) {
@@ -144,10 +159,17 @@ export default function Home() {
     }
     
     setCurrentSongIndex((prevIndex) => {
-      const newIndex =
-        prevIndex === null
-          ? 0
-          : (prevIndex + 1) % playlist.length;
+      if (prevIndex === null) {
+          setProgress(0);
+          setIsPlaying(true);
+          return 0;
+      }
+      // Stop playback if it's the last song and not in radio mode.
+      if (prevIndex === playlist.length - 1 && !isRadioMode) {
+          setIsPlaying(false);
+          return prevIndex;
+      }
+      const newIndex = (prevIndex + 1) % playlist.length;
       setProgress(0);
       setIsPlaying(true);
       return newIndex;
@@ -157,7 +179,11 @@ export default function Home() {
   const handlePrev = () => {
     if (playlist.length === 0) return;
     setCurrentSongIndex((prevIndex) => {
-      if (prevIndex === null) return 0;
+      if (prevIndex === null) {
+        setProgress(0);
+        setIsPlaying(true);
+        return 0;
+      }
       const newIndex =
         prevIndex === 0 ? playlist.length - 1 : prevIndex - 1;
       setProgress(0);
@@ -175,7 +201,11 @@ export default function Home() {
     }
   };
 
-  const getHistory = () => {
+  const getHistoryForAI = () => {
+      // Prioritize using the stored analysis result
+    if (analysisResult) {
+      return JSON.stringify(analysisResult);
+    }
     if (!isLoggedIn) {
       toast({
         variant: "destructive",
@@ -195,9 +225,15 @@ export default function Home() {
   }
 
   const handleAnalyzeHistory = async () => {
-    const history = getHistory();
-    if (history === null) return;
-     if (history === "") {
+    if (!isLoggedIn) {
+         toast({
+            variant: "destructive",
+            title: "Not Logged In",
+            description: "Please log in with YouTube to use your listening history.",
+        });
+        return;
+    }
+     if (listeningHistory.length === 0) {
         toast({
             variant: "destructive",
             title: "No Listening History",
@@ -209,8 +245,14 @@ export default function Home() {
     setIsLoading(true);
     setActiveView("analysis");
     try {
-      const result = await analyzeHistoryAction(history);
+      const historyString = JSON.stringify(listeningHistory);
+      const result = await analyzeHistoryAction(historyString);
       setAnalysisResult(result);
+      localStorage.setItem('yt-analysisResult', JSON.stringify(result)); // Save to localStorage
+      toast({
+        title: "Taste Profile Generated!",
+        description: "Your music taste has been analyzed and will be remembered."
+      });
     } catch (error) {
       console.error(error);
       toast({
@@ -286,7 +328,7 @@ export default function Home() {
       return;
     }
 
-    const history = getHistory();
+    const history = getHistoryForAI();
     if (history === null) return;
 
     setIsLoading(true);
@@ -330,8 +372,10 @@ export default function Home() {
       });
       return;
     }
+    
+    const history = getHistoryForAI();
     // For radio, we can proceed even with null/empty history
-    const history = isLoggedIn ? (listeningHistory.length > 0 ? JSON.stringify(listeningHistory) : "") : "";
+    if (history === null) return;
 
      if (!isLoggedIn) {
       toast({
@@ -400,10 +444,10 @@ export default function Home() {
           maxResults: 50,
         });
 
-        const playlists = playlistsResponse.result.items || [];
+        const playlistsData = playlistsResponse.result.items || [];
         
-        const likedMusic = playlists.find((p: any) => p.snippet?.title === 'Liked music' || p.id === 'LM') || null;
-        const otherPlaylists = playlists.filter((p: any) => p.id !== 'LM' && p.snippet?.title !== 'Liked music');
+        const likedMusic = playlistsData.find((p: any) => p.snippet?.title === 'Liked music' || p.id === 'LM') || null;
+        const otherPlaylists = playlistsData.filter((p: any) => p.id !== 'LM' && p.snippet?.title !== 'Liked music');
 
         setLikedMusicPlaylist(likedMusic);
         setPlaylists(otherPlaylists);
@@ -449,13 +493,20 @@ export default function Home() {
   };
   
     const handleLogout = () => {
-        const token = window.gapi.client.getToken();
-        if (token) {
-            window.google.accounts.oauth2.revoke(token.access_token, () => {});
+        const tokenStr = localStorage.getItem('gapi_token');
+        if (tokenStr) {
+            try {
+                const token = JSON.parse(tokenStr);
+                 if (token && token.access_token) {
+                    window.google.accounts.oauth2.revoke(token.access_token, () => {});
+                }
+            } catch(e) {
+                console.error("Error parsing token for revocation", e);
+            }
         }
         window.gapi.client.setToken(null);
         setIsLoggedIn(false);
-        clearPlaylists();
+        clearYouTubeData();
         toast({ title: "Logged out." });
     }
 
@@ -518,7 +569,7 @@ export default function Home() {
                     },
                 },
             });
-            setPlaylists(prev => [response.result, ...prev]);
+            setPlaylists([response.result, ...playlists]);
             toast({ title: 'Playlist Created', description: `"${newPlaylistName}" has been created.` });
         } catch (error: any) {
             console.error('Error creating playlist:', error);
@@ -706,7 +757,7 @@ export default function Home() {
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setIsCreatePlaylistOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={isCreatingPlaylist}>
-                {isCreatingPlaylist ? <Loader className="animate-spin" /> : <Plus />}
+                {isCreatingPlaylist ? <Loader className="animate-spin mr-2" /> : <Plus className="mr-2" />}
                 Create
             </Button>
           </DialogFooter>

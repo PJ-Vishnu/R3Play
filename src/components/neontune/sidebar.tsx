@@ -106,11 +106,11 @@ export default function NeonTuneSidebar({
         </SidebarGroupLabel>
         <SidebarMenu>
           {isLoggedIn && isLoadingPlaylists && (
-            <>
+            <div className="p-2 space-y-2">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
-            </>
+            </div>
           )}
           {isLoggedIn && !isLoadingPlaylists && (
             <>
