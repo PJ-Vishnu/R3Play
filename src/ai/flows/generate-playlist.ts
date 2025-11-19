@@ -13,7 +13,7 @@ import {z} from 'genkit';
 const GeneratePlaylistInputSchema = z.object({
   listeningHistory: z
     .string()
-    .describe('The user listening history, as a string.'),
+    .describe('The user listening history, as a string. This can be empty if no history is available.'),
   currentRequests: z
     .string()
     .describe('The current song requests, as a string.'),
@@ -33,12 +33,18 @@ const prompt = ai.definePrompt({
   name: 'generatePlaylistPrompt',
   input: {schema: GeneratePlaylistInputSchema},
   output: {schema: GeneratePlaylistOutputSchema},
-  prompt: `You are a personal DJ that generates playlists based on listening history and current song requests.
+  prompt: `You are a personal DJ that generates playlists based on a user's taste and current song requests.
 
-  Listening History: {{{listeningHistory}}}
   Current Requests: {{{currentRequests}}}
+  
+  {{#if listeningHistory}}
+  The user's listening history is provided below. Use it as a strong indicator of their taste.
+  Listening History: {{{listeningHistory}}}
+  {{else}}
+  No listening history is available. For a "radio" request, generate a playlist of popular and critically acclaimed songs from various genres. For a specific request (e.g., '90s rock'), generate a playlist based on that request.
+  {{/if}}
 
-Please create a playlist of songs that the user will enjoy.  Respond with an array of song names, with each song formatted as 'Song Name by Artist Name'.  Make sure the songs are appropriate for the listening history and current requests.`,
+Please create a playlist of 20 songs that the user will enjoy.  Respond with an array of song names, with each song formatted as 'Song Name by Artist Name'.`,
 });
 
 const generatePlaylistFlow = ai.defineFlow(

@@ -24,5 +24,4 @@ export async function generatePlaylistAction(
   const result = await generatePlaylist({ listeningHistory, currentRequests });
   return result;
 }
-
     

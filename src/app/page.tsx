@@ -120,18 +120,25 @@ export default function Home() {
     }
     if (listeningHistory.length === 0) {
       toast({
-        variant: "destructive",
         title: "No Listening History Found",
-        description: "We couldn't find your 'Liked Music' playlist or it's empty. Please 'like' some songs on YouTube Music to build a taste profile.",
+        description: "Generating playlist without taste profile. Like some songs on YouTube Music to build one!",
       });
-      return null;
+      return "";
     }
     return JSON.stringify(listeningHistory);
   }
 
   const handleAnalyzeHistory = async () => {
     const history = getHistory();
-    if (!history) return;
+    if (history === null) return;
+     if (history === "") {
+        toast({
+            variant: "destructive",
+            title: "No Listening History",
+            description: "We couldn't find any liked songs. Please like some songs on YouTube Music to build your taste profile.",
+        });
+        return;
+    }
     
     setIsLoading(true);
     setActiveView("analysis");
@@ -150,7 +157,7 @@ export default function Home() {
     }
   };
 
-    const processGeneratedPlaylist = async (playlistNames: string[], request: string) => {
+    const processGeneratedPlaylist = async (playlistNames: string[]) => {
       const newPlaylist: Song[] = await Promise.all(
         playlistNames.slice(0, 15).map(async (name) => {
           const [title, artist] = name.split(' by ');
@@ -161,7 +168,7 @@ export default function Home() {
           }
 
           return {
-            id: crypto.randomUUID(),
+            id: videoId || crypto.randomUUID(),
             title: title || name,
             artist: artist || 'Unknown Artist',
             album: 'AI Playlist',
@@ -180,7 +187,7 @@ export default function Home() {
         setRequest("");
         toast({
           title: "Playlist Generated!",
-          description: `Your new playlist based on "${request}" is ready.`,
+          description: `Your new playlist is ready.`,
         });
       } else {
         toast({
@@ -207,7 +214,7 @@ export default function Home() {
     }
 
     const history = getHistory();
-    if (!history) return;
+    if (history === null) return;
 
     setIsLoading(true);
     setActiveView("playlist");
@@ -217,7 +224,7 @@ export default function Home() {
         request
       );
 
-      await processGeneratedPlaylist(playlistNames, request);
+      await processGeneratedPlaylist(playlistNames);
 
     } catch (error: any) {
       console.error(error);
@@ -249,8 +256,15 @@ export default function Home() {
       });
       return;
     }
-    const history = getHistory();
-    if (!history) return;
+    // For radio, we can proceed even with null/empty history
+    const history = isLoggedIn ? (listeningHistory.length > 0 ? JSON.stringify(listeningHistory) : "") : "";
+
+     if (!isLoggedIn) {
+      toast({
+        title: "Starting Radio",
+        description: "Login with YouTube for a personalized radio experience.",
+      });
+    }
 
     const radioRequest = 'a radio mix based on my taste';
     setIsLoading(true);
@@ -261,7 +275,7 @@ export default function Home() {
         radioRequest
       );
       
-      const wasPlaylistCreated = await processGeneratedPlaylist(playlistNames, radioRequest);
+      const wasPlaylistCreated = await processGeneratedPlaylist(playlistNames);
 
       if (wasPlaylistCreated) {
         setCurrentSongIndex(0);
@@ -269,7 +283,8 @@ export default function Home() {
         setProgress(0);
       }
 
-    } catch (error: any) {
+    } catch (error: any)
+      {
       console.error(error);
       const errorMessage = error?.result?.error?.message || error?.message || "Could not generate radio playlist.";
        if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
@@ -314,38 +329,31 @@ export default function Home() {
         setLikedMusicPlaylist(likedMusic);
         setPlaylists(otherPlaylists);
 
-        if (likedMusic) {
-          // Fetch only the first page of liked videos to avoid hitting rate limits.
-          const likedVideosResponse = await window.gapi.client.youtube.videos.list({
-            part: ['snippet', 'contentDetails'],
-            myRating: 'like',
-            maxResults: 50, // Limit to 50 to avoid rate limit issues.
-          });
-          
-          const historyItems = likedVideosResponse.result.items || [];
-          
-          const history = historyItems.map((item: any) => ({
-            title: item.snippet?.title || 'Unknown Title',
-            artist: (item.snippet?.channelTitle || 'Unknown Artist').replace(/ - Topic$/, ''),
-          }));
+        // This uses the videos.list with myRating='like' which is the correct way to get liked videos.
+        const likedVideosResponse = await window.gapi.client.youtube.videos.list({
+          part: ['snippet', 'contentDetails'],
+          myRating: 'like',
+          maxResults: 50, // Limit to 50 to avoid rate limit issues.
+        });
+        
+        const historyItems = likedVideosResponse.result.items || [];
+        
+        const history = historyItems.map((item: any) => ({
+          title: item.snippet?.title || 'Unknown Title',
+          artist: (item.snippet?.channelTitle || 'Unknown Artist').replace(/ - Topic$/, ''),
+        }));
 
-          setListeningHistory(history);
-          if (history.length > 0) {
-            toast({
-              title: "Taste Profile Updated!",
-              description: `Analyzed your ${history.length} most recently liked songs.`
-            });
-          } else {
-             toast({
-              title: "Taste Profile Empty",
-              description: "Your 'Liked Music' playlist was found, but it's empty. Like some songs on YouTube Music to build your profile!"
-            });
-          }
-        } else {
+        setListeningHistory(history);
+
+        if (history.length > 0) {
           toast({
-            variant: "destructive",
-            title: "Taste Profile Unavailable",
-            description: "Could not find your 'Liked Music' playlist. Please ensure you have one on YouTube Music."
+            title: "Taste Profile Updated!",
+            description: `Analyzed your ${history.length} most recently liked songs.`
+          });
+        } else {
+            toast({
+            title: "Taste Profile Empty",
+            description: "Your 'Liked Music' playlist was found, but it's empty. Like some songs on YouTube Music to build your profile!"
           });
         }
       } catch (e: any) {
@@ -457,5 +465,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
-    
